@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>ProductLens | Understand What You Buy</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://unpkg.com/html5-qrcode" 
+    type="text/javascript"></script>
+
+</head>
+
+<body>
+
+<!-- ================= NAVIGATION ================= -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        🛒 Product<span>Lens</span>
+    </div>
+
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+    </div>
+
+</nav>
+
+
+<!-- ================= HERO SECTION ================= -->
+
+<section class="hero">
+
+    <div class="hero-text">
+
+        <div class="badge">
+            🔍 Smart Product Information
+        </div>
+
+        <h1>
+            Know what you're
+            <span>really buying.</span>
+        </h1>
+
+        <p>
+            Scan a product barcode and understand
+            its ingredients, nutrition, allergens and
+            other important information — all in one place.
+        </p>
+
+        <div class="buttons">
+
+            <button class="primary-btn"
+                    onclick="document.getElementById('barcode').focus()">
+                📷 Scan Barcode
+            </button>
+
+            <button class="secondary-btn"
+                    onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+                📚 Learn More
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= SCANNER CARD ================= -->
+
+   
+        <!-- SCANNER CARD -->
+
+<div class="scanner-card">
+
+    <div class="scanner-icon">
+        📷
+    </div>
+
+    <h2>Scan a Product</h2>
+
+    <p>
+        Scan the barcode on a food package
+        or enter the barcode number manually.
+    </p>
+
+    <!-- CAMERA SCANNER -->
+
+    <button
+        type="button"
+        id="startScanner"
+        class="primary-btn">
+        📷 Scan Barcode
+    </button>
+
+    <!-- CAMERA VIEW -->
+
+    <div id="reader"
+         style="width:100%; max-width:400px; margin:20px auto; display:none;">
+    </div>
+
+    <p id="scannerStatus"
+       style="display:none;">
+    </p>
+
+
+    <!-- MANUAL BARCODE SEARCH -->
+
+    <div class="manual-search">
+
+        <p>
+            <strong>Or enter the barcode manually</strong>
+        </p>
+
+        <form action="/search" method="POST">
+
+            <input
+                type="text"
+                id="barcodeInput"
+                name="barcode"
+                placeholder="Example: 3017620422003"
+                inputmode="numeric"
+                autocomplete="off"
+                required
+            >
+
+            <button type="submit">
+                🔎 Search Product
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+<!-- ================= RESULTS / FEATURES ================= -->
+
+<section class="features" id="features">
+
+{% if error %}
+
+    <div class="result-card error-card">
+
+        <h2>⚠️ Product Not Found</h2>
+
+        <p>{{ error }}</p>
+
+    </div>
+
+{% endif %}
+
+
+{% if product %}
+
+    <!-- ================= PRODUCT RESULT ================= -->
+
+    <div class="result-card">
+
+        <div class="result-header">
+
+            <div>
+                <div class="result-label">
+                    🔎 PRODUCT FOUND
+                </div>
+
+                <h2>
+                    {{ product.get('name', 'Product name not available') }}
+                </h2>
+
+                <p class="brand-text">
+                    <strong>Brand:</strong>
+                    {{ product.get('brands', 'Brand information not available') }}
+                </p>
+
+                <p class="barcode-text">
+                    <strong>Barcode:</strong>
+                    {{ product.get('barcode', 'Not available') }}
+                </p>
+
+            </div>
+
+
+            {% if product.get('image') %}
+
+            <div class="product-image-container">
+
+                <img
+                    src="{{ product.get('image') }}"
+                    alt="{{ product.get('name', 'Product') }}"
+                    class="product-image"
+                >
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- ================= INGREDIENTS ================= -->
+
+        <div class="info-box">
+
+            <h3>🧪 Ingredients</h3>
+
+            <p>
+                {{ product.get(
+                    'ingredients',
+                    'Ingredients information not available.'
+                ) }}
+            </p>
+
+        </div>
+<!-- ================= INGREDIENT DECODER ================= -->
+
+{% if product.get('decoded_ingredients') %}
+
+<div class="info-box decoder-box">
+
+    <h3>🧠 Ingredient Decoder</h3>
+
+    <p class="decoder-intro">
+        ProductLens identified some ingredients and explains
+        their general role in the product.
+    </p>
+
+    <div class="decoder-grid">
+
+        {% for ingredient in product.get('decoded_ingredients', []) %}
+
+        <div class="decoder-item">
+
+            <h4>
+                🧪 {{ ingredient.get('name') }}
+            </h4>
+
+            <p>
+                {{ ingredient.get('explanation') }}
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endif %}
+
+        <!-- ================= NUTRITION ================= -->
+
+        <div class="nutrition-grid">
+
+    <div class="nutrition-item">
+
+        <span class="nutrition-icon">🔥</span>
+
+        <strong>Energy</strong>
+
+        <p>
+            {{ product.get('energy', 'Not available') }}
+        </p>
+
+    </div>
+
+
+    <div class="nutrition-item">
+
+        <span class="nutrition-icon">🍬</span>
+
+        <strong>Sugar</strong>
+
+        <p>
+            {{ product.get('sugar', 'Not available') }}
+        </p>
+
+        <span class="nutrition-level {{ product.get('sugar_level', {}).get('class', 'neutral') }}">
+            {{ product.get('sugar_level', {}).get('level', 'Not available') }}
+        </span>
+
+    </div>
+
+
+    <div class="nutrition-item">
+
+        <span class="nutrition-icon">🥑</span>
+
+        <strong>Fat</strong>
+
+        <p>
+            {{ product.get('fat', 'Not available') }}
+        </p>
+
+        <span class="nutrition-level {{ product.get('fat_level', {}).get('class', 'neutral') }}">
+            {{ product.get('fat_level', {}).get('level', 'Not available') }}
+        </span>
+
+    </div>
+
+
+    <div class="nutrition-item">
+
+        <span class="nutrition-icon">💪</span>
+
+        <strong>Protein</strong>
+
+        <p>
+            {{ product.get('protein', 'Not available') }}
+        </p>
+
+    </div>
+
+
+    <div class="nutrition-item">
+
+        <span class="nutrition-icon">🧂</span>
+
+        <strong>Salt</strong>
+
+        <p>
+            {{ product.get('salt', 'Not available') }}
+        </p>
+
+        <span class="nutrition-level {{ product.get('salt_level', {}).get('class', 'neutral') }}">
+            {{ product.get('salt_level', {}).get('level', 'Not available') }}
+        </span>
+
+    </div>
+
+</div>        <!-- ================= ALLERGENS ================= -->
+
+        <!-- ================= ALLERGENS ================= -->
+
+<div class="info-box allergen-box">
+
+    <h3>⚠️ Allergens</h3>
+
+    <p>
+        <strong>Declared by product database:</strong><br>
+
+        {{ product.get(
+            'allergens',
+            'No declared allergens available.'
+        ) }}
+    </p>
+
+
+    {% if product.get('detected_allergens') %}
+
+        <div class="detected-allergens">
+
+            <h4>🔎 Detected from ingredient text</h4>
+
+            <p class="allergen-note">
+                These terms were detected in the ingredient list.
+                This is an informational screening feature and
+                should not replace checking the product label.
+            </p>
+
+            <div class="allergen-tags">
+
+                {% for allergen in product.get('detected_allergens', []) %}
+
+                    <span class="allergen-tag">
+
+                        {{ allergen.get('icon') }}
+
+                        {{ allergen.get('name') }}
+
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <div class="no-allergen">
+
+            ✓ No supported allergen terms detected in the
+            ingredient text.
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+        <!-- ================= PRODUCT SUMMARY ================= -->
+
+        <div class="product-summary">
+
+            <span>✓ Product information retrieved</span>
+
+            <span>✓ Open Food Facts data</span>
+
+        </div>
+
+    </div>
+
+{% endif %}
+
+
+<!-- ================= FEATURE INTRO ================= -->
+
+<h2 class="section-title">
+    Everything you need to understand a product
+</h2>
+
+<p class="section-subtitle">
+    Product information made simple and easy to understand.
+</p>
+
+
+<div class="feature-grid">
+
+
+    <div class="feature-card">
+
+        <div class="icon">🧪</div>
+
+        <h3>Ingredient Decoder</h3>
+
+        <p>
+            Understand complicated ingredient
+            names in simple language.
+        </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+        <div class="icon">📊</div>
+
+        <h3>Nutrition</h3>
+
+        <p>
+            View important nutritional information
+            in an easy-to-read format.
+        </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+        <div class="icon">⚠️</div>
+
+        <h3>Allergen Information</h3>
+
+        <p>
+            Quickly identify declared allergens
+            present in the product information.
+        </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+        <div class="icon">⚖️</div>
+
+        <h3>Compare Products</h3>
+
+        <p>
+            Compare two products side-by-side
+            to understand their differences.
+        </p>
+
+    </div>
+
+</div>
+
+</section>
+
+
+<!-- ================= ABOUT ================= -->
+
+<section id="about" class="about-section">
+
+    <h2>About ProductLens</h2>
+
+    <p>
+        ProductLens is a student-built food information
+        project designed to make product information
+        easier to understand.
+    </p>
+
+</section>
+<!-- =====================================================
+     PRODUCT COMPARISON
+===================================================== -->
+
+<section class="compare-section" id="compare">
+
+    <div class="compare-heading">
+
+        <span class="compare-badge">
+            ⚖️ Smart Comparison
+        </span>
+
+        <h2>Compare Two Products</h2>
+
+        <p>
+            Enter two barcodes to compare their nutritional
+            information side-by-side.
+        </p>
+
+    </div>
+
+
+    <!-- COMPARISON FORM -->
+
+    <form
+        action="/compare"
+        method="POST"
+        class="compare-form"
+    >
+
+        <div class="compare-input">
+
+            <label>Product 1</label>
+
+            <input
+                type="text"
+                name="barcode1"
+                placeholder="Enter first barcode"
+                required
+            >
+
+        </div>
+
+
+        <div class="vs">
+
+            VS
+
+        </div>
+
+
+        <div class="compare-input">
+
+            <label>Product 2</label>
+
+            <input
+                type="text"
+                name="barcode2"
+                placeholder="Enter second barcode"
+                required
+            >
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="compare-button"
+        >
+
+            ⚖️ Compare Products
+
+        </button>
+
+    </form>
+
+
+    <!-- COMPARISON ERROR -->
+
+    {% if compare_error %}
+
+        <div class="compare-error">
+
+            ⚠️ {{ compare_error }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- =================================================
+         COMPARISON RESULT
+    ================================================= -->
+
+    {% if comparison %}
+
+    <div class="comparison-result">
+
+
+        <!-- PRODUCT HEADERS -->
+
+        <div class="comparison-products">
+
+            <div class="comparison-product">
+
+                {% if comparison.product1.image %}
+
+                    <img
+                        src="{{ comparison.product1.image }}"
+                        alt="{{ comparison.product1.name }}"
+                    >
+
+                {% endif %}
+
+                <h3>
+                    {{ comparison.product1.name }}
+                </h3>
+
+                <p>
+                    {{ comparison.product1.brands }}
+                </p>
+
+                <small>
+                    Barcode:
+                    {{ comparison.product1.barcode }}
+                </small>
+
+            </div>
+
+
+            <div class="comparison-vs">
+
+                VS
+
+            </div>
+
+
+            <div class="comparison-product">
+
+                {% if comparison.product2.image %}
+
+                    <img
+                        src="{{ comparison.product2.image }}"
+                        alt="{{ comparison.product2.name }}"
+                    >
+
+                {% endif %}
+
+                <h3>
+                    {{ comparison.product2.name }}
+                </h3>
+
+                <p>
+                    {{ comparison.product2.brands }}
+                </p>
+
+                <small>
+                    Barcode:
+                    {{ comparison.product2.barcode }}
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- NUTRITION TABLE -->
+
+        <div class="comparison-table-wrapper">
+
+            <table class="comparison-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Nutrition</th>
+
+                        <th>
+                            {{ comparison.product1.name }}
+                        </th>
+
+                        <th>
+                            {{ comparison.product2.name }}
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for row in comparison.rows %}
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ row.label }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ row.value1 }}
+                            {{ row.unit }}
+                        </td>
+
+                        <td>
+                            {{ row.value2 }}
+                            {{ row.unit }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- INSIGHTS -->
+
+        <div class="comparison-insights">
+
+            <h3>📊 Comparison Insights</h3>
+
+            {% if comparison.insights %}
+
+                <ul>
+
+                    {% for insight in comparison.insights %}
+
+                        <li>
+                            ✓ {{ insight }}
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            {% else %}
+
+                <p>
+                    Not enough nutritional data is available
+                    to generate comparison insights.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="comparison-note">
+
+            ℹ️ Values shown are generally based on information
+            provided by Open Food Facts and are intended for
+            informational comparison.
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- ================= FOOTER ================= -->
+<footer>
+
+    <p>
+        © 2026 ProductLens | Scan • Understand • Compare
+    </p>
+
+</footer>
+
+
+<!-- BARCODE SCANNER SCRIPT -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const startScannerButton =
+        document.getElementById("startScanner");
+
+    const reader =
+        document.getElementById("reader");
+
+    const barcodeInput =
+        document.getElementById("barcodeInput");
+
+    const scannerStatus =
+        document.getElementById("scannerStatus");
+
+    let html5QrCode = null;
+
+
+    startScannerButton.addEventListener("click", async function (event) {
+
+        // Prevent the button from submitting the form
+        event.preventDefault();
+        event.stopPropagation();
+
+
+        reader.style.display = "block";
+
+        scannerStatus.style.display = "block";
+
+        scannerStatus.textContent =
+            "📷 Starting camera...";
+
+
+        startScannerButton.disabled = true;
+
+
+        html5QrCode =
+            new Html5Qrcode("reader");
+
+
+        const config = {
+
+            fps: 10,
+
+            qrbox: {
+                width: 280,
+                height: 120
+            },
+
+            formatsToSupport: [
+
+                Html5QrcodeSupportedFormats.EAN_13,
+
+                Html5QrcodeSupportedFormats.EAN_8,
+
+                Html5QrcodeSupportedFormats.UPC_A,
+
+                Html5QrcodeSupportedFormats.UPC_E
+
+            ]
+
+        };
+
+
+        try {
+
+            await html5QrCode.start(
+
+                { facingMode: "environment" },
+
+                config,
+
+
+                async function (decodedText) {
+
+                    console.log(
+                        "Barcode detected:",
+                        decodedText
+                    );
+
+
+                    barcodeInput.value =
+                        decodedText;
+
+
+                    scannerStatus.textContent =
+                        "✅ Barcode detected! Searching...";
+
+
+                    await html5QrCode.stop();
+
+
+                    reader.style.display =
+                        "none";
+
+
+                    document
+                        .querySelector(".manual-search form")
+                        .submit();
+
+                },
+
+
+                function (errorMessage) {
+
+                    // Scanner is continuously looking
+                    // for a barcode.
+
+                }
+
+            );
+
+
+            scannerStatus.textContent =
+                "📷 Point your camera at the black-and-white barcode.";
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Camera error:",
+                error
+            );
+
+
+            scannerStatus.textContent =
+                "❌ Camera could not start. Please allow camera access.";
+
+
+            startScannerButton.disabled =
+                false;
+
+        }
+
+    });
+
+});
+
+</script>
+
+
+</body>
+</html>

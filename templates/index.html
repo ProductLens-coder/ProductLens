@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProductLens — Food Intelligence</title>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #10233f;
+            --blue: #2563eb;
+            --cyan: #06b6d4;
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #667085;
+            --border: #e5eaf1;
+            --green: #16a34a;
+            --yellow: #d97706;
+            --red: #dc2626;
+            --shadow: 0 14px 40px rgba(16,35,63,.08);
+        }
+
+        body {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        button, input { font: inherit; }
+
+        .topbar {
+            background: linear-gradient(135deg, #0d1f38, #163c68);
+            color: white;
+            padding: 17px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            box-shadow: 0 5px 25px rgba(0,0,0,.12);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 43px;
+            height: 43px;
+            border-radius: 13px;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,.13);
+            font-size: 23px;
+        }
+
+        .brand h1 { font-size: 21px; letter-spacing: -.4px; }
+        .brand p { font-size: 11px; color: #b9d0ea; }
+
+        .status {
+            font-size: 12px;
+            color: #dbeafe;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+        }
+
+        .hero {
+            max-width: 1180px;
+            margin: 42px auto 25px;
+            padding: 0 22px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 7px 13px;
+            background: #e8f1ff;
+            color: #1d4ed8;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 13px;
+        }
+
+        .hero h2 {
+            font-size: clamp(30px, 5vw, 49px);
+            line-height: 1.05;
+            letter-spacing: -1.7px;
+            color: var(--navy);
+            margin-bottom: 13px;
+        }
+
+        .hero h2 span {
+            color: var(--blue);
+        }
+
+        .hero p {
+            max-width: 690px;
+            margin: auto;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: auto;
+            padding: 0 22px 60px;
+        }
+
+        .search-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+        }
+
+        .search-title {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 17px;
+        }
+
+        .search-title .icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #eaf2ff;
+            display: grid;
+            place-items: center;
+            font-size: 21px;
+        }
+
+        .search-title h3 { font-size: 18px; }
+        .search-title p { font-size: 12px; color: var(--muted); }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            border: 1px solid #d7dee9;
+            border-radius: 12px;
+            padding: 13px 14px;
+            outline: none;
+            background: #fbfcfe;
+            color: var(--text);
+        }
+
+        input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.10);
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: .2s ease;
+            white-space: nowrap;
+        }
+
+        .btn:hover { transform: translateY(-1px); }
+
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+            box-shadow: 0 7px 18px rgba(37,99,235,.2);
+        }
+
+        .btn-dark { background: var(--navy); color: white; }
+        .btn-light { background: #eef3f9; color: var(--navy); }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .action-card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fbfcfe;
+            padding: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: .2s;
+        }
+
+        .action-card:hover {
+            border-color: #b7cdf4;
+            background: #f5f9ff;
+        }
+
+        .action-card strong { display: block; font-size: 14px; }
+        .action-card small { color: var(--muted); font-size: 11px; }
+
+        .alert {
+            padding: 13px 16px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .alert-error { background: #fff0f0; color: #b42318; border: 1px solid #ffd0d0; }
+        .alert-success { background: #effcf3; color: #147a36; border: 1px solid #c9efd3; }
+
+        .section {
+            margin-top: 28px;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 14px;
+        }
+
+        .section-heading h3 {
+            font-size: 21px;
+            color: var(--navy);
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .product-head {
+            display: grid;
+            grid-template-columns: 150px 1fr auto;
+            gap: 22px;
+            align-items: center;
+            background: white;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .product-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 16px;
+            object-fit: contain;
+            background: #f6f8fb;
+            border: 1px solid var(--border);
+        }
+
+        .product-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            background: #f2f6fb;
+            font-size: 48px;
+        }
+
+        .product-head h2 { font-size: 25px; margin-bottom: 5px; }
+        .brand { color: var(--muted); font-size: 13px; }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 12px;
+        }
+
+        .pill {
+            background: #f0f4f9;
+            color: #475467;
+            padding: 5px 9px;
+            border-radius: 99px;
+            font-size: 11px;
+        }
+
+        .score {
+            min-width: 120px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 16px;
+            background: #f0fdf4;
+            border: 1px solid #ccefd8;
+        }
+
+        .score .number {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--green);
+            line-height: 1;
+        }
+
+        .score small { color: #287443; font-weight: 700; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(16,35,63,.045);
+        }
+
+        .card-title {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title .emoji {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            background: #f1f5f9;
+            border-radius: 11px;
+            font-size: 19px;
+        }
+
+        .card-title h4 { font-size: 16px; }
+        .card-title p { font-size: 11px; color: var(--muted); }
+
+        .nutrition-list { display: grid; gap: 15px; }
+
+        .nutrient-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .nutrient-value { font-weight: 800; }
+        .bar {
+            height: 8px;
+            background: #edf1f5;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .fill { height: 100%; border-radius: 99px; }
+        .fill.low { background: var(--green); }
+        .fill.moderate { background: #f59e0b; }
+        .fill.high { background: var(--red); }
+        .fill.neutral { background: #94a3b8; }
+
+        .level {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 2px 7px;
+            font-size: 10px;
+            border-radius: 99px;
+            font-weight: 700;
+        }
+
+        .level.low { background: #eaf8ef; color: #15803d; }
+        .level.moderate { background: #fff7df; color: #a16207; }
+        .level.high { background: #fff0f0; color: #b91c1c; }
+
+
+        .ingredient-search {
+            display: inline-block;
+            margin-top: 9px;
+            padding: 7px 10px;
+            border-radius: 9px;
+            background: #eef6ff;
+            color: #1769aa;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            border: 1px solid #d8eaff;
+        }
+        .ingredient-search:hover {
+            background: #e3f0ff;
+        }
+
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .highlight {
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 12px;
+            background: #fbfcfe;
+        }
+
+        .highlight .h-icon { font-size: 20px; margin-bottom: 5px; }
+        .highlight strong { display: block; font-size: 12px; }
+        .highlight span { display: block; color: var(--muted); font-size: 11px; }
+
+        .ingredient-list {
+            list-style: none;
+            display: grid;
+            gap: 8px;
+            max-height: 330px;
+            overflow: auto;
+        }
+
+        .ingredient-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 11px;
+            background: #f8fafc;
+            border: 1px solid #edf0f4;
+            border-radius: 11px;
+            font-size: 12px;
+        }
+
+        .number {
+            min-width: 25px;
+            height: 25px;
+            border-radius: 8px;
+            background: #eaf2ff;
+            color: #1d4ed8;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 10px;
+        }
+
+        .detective-item {
+            border-left: 4px solid var(--blue);
+            background: #f8fbff;
+            border-radius: 11px;
+            padding: 12px 13px;
+            margin-bottom: 9px;
+        }
+
+        .detective-item strong { font-size: 13px; }
+        .detective-item p { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+        .detective-role {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 3px 8px;
+            border-radius: 99px;
+            background: #eaf2ff;
+            color: #1d4ed8;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .detective-use {
+            margin-top: 8px;
+            padding: 8px 10px;
+            border-radius: 9px;
+            background: white;
+            border: 1px solid #e5eaf1;
+            font-size: 11px;
+            color: #475467;
+        }
+
+        .detective-use strong {
+            color: #172033;
+            font-size: 11px;
+        }
+
+        .detective-count {
+            margin-left: auto;
+            background: #eef3f9;
+            color: #475467;
+            padding: 4px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .category {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .category-title {
+            font-weight: 800;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 7px;
+            border-radius: 7px;
+            background: white;
+            border: 1px solid #e3e8ef;
+            font-size: 10px;
+            margin: 2px;
+            color: #475467;
+        }
+
+        .allergen {
+            border: 1px solid #fecaca;
+            background: #fff7f7;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .allergen strong { font-size: 12px; color: #991b1b; }
+        .allergen small { display: block; color: #7f1d1d; font-size: 10px; }
+
+        .caution {
+            border-radius: 13px;
+            padding: 13px;
+            margin-bottom: 9px;
+            background: #fff8e8;
+            border: 1px solid #f9df9e;
+        }
+
+        .caution.danger { background: #fff3f3; border-color: #fecaca; }
+        .caution strong { font-size: 12px; display: block; }
+        .caution p { font-size: 11px; color: #667085; margin-top: 3px; }
+
+        .empty {
+            color: var(--muted);
+            font-size: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .manual, .compare {
+            display: none;
+            margin-top: 18px;
+        }
+
+        .manual.show, .compare.show { display: block; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 11px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #475467;
+        }
+
+        .full { grid-column: 1 / -1; }
+
+        .footer {
+            text-align: center;
+            color: #8994a5;
+            font-size: 11px;
+            padding: 25px;
+        }
+
+        #scannerModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(8,20,36,.82);
+            padding: 25px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #scannerModal.open { display: flex; }
+
+        .scanner-box {
+            width: min(520px, 100%);
+            background: white;
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .scanner-box h3 { margin-bottom: 5px; }
+        .scanner-box p { font-size: 12px; color: var(--muted); margin-bottom: 13px; }
+
+        #reader {
+            width: 100%;
+            min-height: 260px;
+            border-radius: 13px;
+            overflow: hidden;
+            background: #0b1628;
+        }
+
+        .scanner-close {
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        @media(max-width: 800px) {
+            .search-row { grid-template-columns: 1fr 1fr; }
+            .search-row input { grid-column: 1 / -1; }
+            .product-head { grid-template-columns: 100px 1fr; }
+            .product-image, .product-placeholder { width: 100px; height: 100px; }
+            .score { grid-column: 1 / -1; }
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        @media(max-width: 550px) {
+            .topbar { padding: 13px 18px; }
+            .status { display: none; }
+            .hero { margin-top: 28px; }
+            .container { padding: 0 13px 40px; }
+            .search-card { padding: 17px; }
+            .quick-actions { grid-template-columns: 1fr; }
+            .search-row { grid-template-columns: 1fr; }
+            .product-head { grid-template-columns: 1fr; text-align: center; }
+            .product-image, .product-placeholder { margin: auto; }
+            .meta { justify-content: center; }
+            .highlight-grid, .category-grid, .form-grid { grid-template-columns: 1fr; }
+            .full { grid-column: auto; }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="logo">🔬</div>
+        <div>
+            <h1>ProductLens</h1>
+            <p>Food Ingredient & Nutrition Intelligence</p>
+        </div>
+    </div>
+    <div class="status"><span class="dot"></span> Analysis system ready</div>
+</header>
+
+<section class="hero">
+    <div class="hero-badge">SMART FOOD ANALYSIS</div>
+    <h2>Know what's <span>inside</span> your food.</h2>
+    <p>Scan a barcode or enter one manually to explore ingredients, nutrition, allergens, health cautions and intelligent food insights.</p>
+</section>
+
+<main class="container">
+
+    {% if error %}
+        <div class="alert alert-error">⚠️ {{ error }}</div>
+    {% endif %}
+
+    {% if manual_success %}
+        <div class="alert alert-success">✅ Manual product analysis completed successfully.</div>
+    {% endif %}
+
+    <section class="search-card">
+        <div class="search-title">
+            <div class="icon">📷</div>
+            <div>
+                <h3>Analyze a Product</h3>
+                <p>Enter a barcode or use your camera to scan one.</p>
+            </div>
+        </div>
+
+        <form action="/search" method="POST">
+            <div class="search-row">
+                <input id="barcodeInput" type="text" name="barcode" inputmode="numeric"
+                       placeholder="Enter barcode number e.g. 8901234567890"
+                       value="{{ missing_barcode or '' }}">
+                <button class="btn btn-dark" type="button" onclick="openScanner()">📷 Scan Barcode</button>
+                <button class="btn btn-primary" type="submit">🔎 Analyze</button>
+            </div>
+        </form>
+
+        <div class="quick-actions">
+            <div class="action-card" onclick="toggleBox('manualBox')">
+                <strong>✍️ Manual Entry</strong>
+                <small>Analyze a product when barcode data isn't available.</small>
+            </div>
+            <div class="action-card" onclick="toggleBox('compareBox')">
+                <strong>⚖️ Compare Products</strong>
+                <small>Compare nutrition values from two barcodes.</small>
+            </div>
+            <div class="action-card" onclick="document.getElementById('barcodeInput').focus()">
+                <strong>🔎 Quick Search</strong>
+                <small>Search Open Food Facts and USDA databases.</small>
+            </div>
+        </div>
+
+        {% if show_manual_form %}
+        <div id="manualBox" class="manual show">
+        {% else %}
+        <div id="manualBox" class="manual">
+        {% endif %}
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">✍️</div>
+                    <div>
+                        <h4>Manual Product Entry</h4>
+                        <p>Enter information from the product label.</p>
+                    </div>
+                </div>
+
+                <form action="/manual" method="POST">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Barcode</label>
+                            <input type="text" name="barcode" value="{{ missing_barcode or '' }}">
+                        </div>
+                        <div class="field">
+                            <label>Product Name *</label>
+                            <input type="text" name="name" required>
+                        </div>
+                        <div class="field">
+                            <label>Brand</label>
+                            <input type="text" name="brand">
+                        </div>
+                        <div class="field">
+                            <label>Ingredients</label>
+                            <input type="text" name="ingredients" placeholder="e.g. wheat flour, sugar, milk...">
+                        </div>
+                        <div class="field full">
+                            <label>Declared Allergens</label>
+                            <input type="text" name="allergens" placeholder="e.g. milk, wheat, soy">
+                        </div>
+                        <div class="field">
+                            <label>Energy (kcal/100g)</label>
+                            <input type="number" step="any" name="energy" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Sugar (g/100g)</label>
+                            <input type="number" step="any" name="sugar" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Fat (g/100g)</label>
+                            <input type="number" step="any" name="fat" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Protein (g/100g)</label>
+                            <input type="number" step="any" name="protein" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Salt (g/100g)</label>
+                            <input type="number" step="any" name="salt" value="0">
+                        </div>
+                        <div class="field full">
+                            <button class="btn btn-primary" type="submit">🔬 Analyze Manually</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="compareBox" class="compare">
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">⚖️</div>
+                    <div>
+                        <h4>Compare Two Products</h4>
+                        <p>Enter two product barcodes.</p>
+                    </div>
+                </div>
+                <form action="/compare" method="POST">
+                    <div class="search-row">
+                        <input type="text" name="barcode1" placeholder="Product 1 barcode">
+                        <input type="text" name="barcode2" placeholder="Product 2 barcode">
+                        <button class="btn btn-primary" type="submit">⚖️ Compare</button>
+                    </div>
+                </form>
+                {% if compare_error %}
+                    <div class="alert alert-error" style="margin-top:12px;">⚠️ {{ compare_error }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+
+    {% if product %}
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>Product Analysis</h3>
+                <p>Verified source: {{ product.source }}</p>
+            </div>
+        </div>
+
+        <div class="product-head">
+            {% if product.image %}
+                <img class="product-image" src="{{ product.image }}" alt="Product image"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='grid';">
+                <div class="product-placeholder" style="display:none;">📦</div>
+            {% else %}
+                <div class="product-placeholder">📦</div>
+            {% endif %}
+
+            <div>
+                <h2>{{ product.name }}</h2>
+                {% if product.brands %}
+                    <div class="brand">{{ product.brands }}</div>
+                {% endif %}
+                <div class="meta">
+                    <span class="pill">🏷️ Barcode: {{ product.barcode }}</span>
+                    <span class="pill">🗃️ {{ product.source }}</span>
+                    {% if product.verified %}
+                        <span class="pill">✓ Database verified</span>
+                    {% else %}
+                        <span class="pill">✎ Manual analysis</span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- SMART HIGHLIGHTS -->
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>⚡ Smart Highlights</h3>
+                <p>Quick insights generated from the product data.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="highlight-grid">
+                {% for item in product.smart_highlights %}
+                    <div class="highlight">
+                        <div class="h-icon">{{ item.icon }}</div>
+                        <strong>{{ item.title }}</strong>
+                        <span>{{ item.text }}</span>
+                    </div>
+                {% else %}
+                    <div class="empty">No smart highlights available.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+
+    <!-- NUTRITION -->
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>📊 Nutrition Snapshot</h3>
+                <p>Values are shown per 100 g unless the source states otherwise.</p>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">📊</div>
+                    <div>
+                        <h4>Nutrition Levels</h4>
+                        <p>Relative interpretation</p>
+                    </div>
+                </div>
+
+                <div class="nutrition-list">
+
+                    <div>
+                        <div class="nutrient-top">
+                            <span>🔥 Energy</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.energy) }} kcal</span>
+                        </div>
+                        <div class="bar">
+                            <div class="fill {{ product.energy_bar.class }}" style="width:{{ product.energy_bar.percent }}%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="nutrient-top">
+                            <span>🍬 Sugar</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.sugar) }} g</span>
+                        </div>
+                        <div class="bar">
+                            <div class="fill {{ product.sugar_bar.class }}" style="width:{{ product.sugar_bar.percent }}%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="nutrient-top">
+                            <span>🛢️ Fat</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.fat) }} g</span>
+                        </div>
+                        <div class="bar">
+                            <div class="fill {{ product.fat_bar.class }}" style="width:{{ product.fat_bar.percent }}%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="nutrient-top">
+                            <span>💪 Protein</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.protein) }} g</span>
+                        </div>
+                        <div class="bar">
+                            <div class="fill {{ product.protein_bar.class }}" style="width:{{ product.protein_bar.percent }}%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="nutrient-top">
+                            <span>🧂 Salt</span>
+                            <span class="nutrient-value">{{ "%.2f"|format(product.salt) }} g</span>
+                        </div>
+                        <div class="bar">
+                            <div class="fill {{ product.salt_bar.class }}" style="width:{{ product.salt_bar.percent }}%"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ALLERGENS -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">🚨</div>
+                    <div>
+                        <h4>Allergen Detection</h4>
+                        <p>Potential allergens found in the available text.</p>
+                    </div>
+                </div>
+
+                {% if product.detected_allergens %}
+                    {% for allergen in product.detected_allergens %}
+                        <div class="allergen">
+                            <span style="font-size:23px;">{{ allergen.icon }}</span>
+                            <div>
+                                <strong>{{ allergen.name }}</strong>
+                                <small>Detected keyword: {{ allergen.keyword }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">✅ No allergens detected from the available ingredient/allergen information. Always check the physical package label for allergy warnings.</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+
+    <!-- INGREDIENT INTELLIGENCE -->
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>🧪 Ingredient Intelligence</h3>
+                <p>See what each listed ingredient is and why it is used in the product.</p>
+            </div>
+        </div>
+
+        <div class="grid">
+
+            <!-- INGREDIENT DETECTIVE -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">🔬</div>
+                    <div style="flex:1;">
+                        <h4>Ingredient Detective</h4>
+                        <p>Every listed ingredient is analysed for its likely food role and purpose.</p>
+                    </div>
+                    {% if product.ingredient_order %}
+                        <span class="detective-count">{{ product.ingredient_order|length }} ingredients</span>
+                    {% endif %}
+                </div>
+
+                {% if product.ingredient_order %}
+                    {% for ingredient in product.ingredient_order %}
+                        {% set ing = ingredient|lower|trim %}
+                        <div class="detective-item">
+                            <strong>{{ ingredient }}</strong>
+
+                            {% if 'sugar' in ing %}
+                                <span class="detective-role">Sweetener</span>
+                                <p>A sweetening ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds sweetness and contributes to the product's carbohydrate content.</div>
+                            {% elif 'glucose' in ing %}
+                                <span class="detective-role">Sugar / Sweetener</span>
+                                <p>A simple sugar commonly used in food formulations.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Sweetness, carbohydrate content and sometimes texture.</div>
+                            {% elif 'dextrose' in ing %}
+                                <span class="detective-role">Sugar / Sweetener</span>
+                                <p>A form of glucose.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Sweetness and carbohydrate contribution.</div>
+                            {% elif 'fructose' in ing %}
+                                <span class="detective-role">Sugar / Sweetener</span>
+                                <p>A naturally occurring simple sugar.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides sweetness.</div>
+                            {% elif 'syrup' in ing %}
+                                <span class="detective-role">Sweetener</span>
+                                <p>A concentrated sweetening ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds sweetness, moisture and texture.</div>
+                            {% elif 'wheat' in ing or 'maida' in ing or 'atta' in ing or 'flour' in ing or 'semolina' in ing or 'sooji' in ing or 'suji' in ing or 'rava' in ing %}
+                                <span class="detective-role">Cereal / Grain</span>
+                                <p>A cereal-based ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides bulk, carbohydrates and structure to the food.</div>
+                            {% elif 'rice' in ing %}
+                                <span class="detective-role">Cereal / Grain</span>
+                                <p>A cereal grain and carbohydrate source.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides bulk, texture and carbohydrates.</div>
+                            {% elif 'corn' in ing or 'maize' in ing %}
+                                <span class="detective-role">Cereal / Grain</span>
+                                <p>A cereal grain used in many food formulations.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides carbohydrates, bulk or texture depending on the form.</div>
+                            {% elif 'barley' in ing %}
+                                <span class="detective-role">Cereal / Grain</span>
+                                <p>A cereal grain.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides carbohydrates, flavour and texture.</div>
+                            {% elif 'milk powder' in ing %}
+                                <span class="detective-role">Dairy</span>
+                                <p>Dried milk solids.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds dairy flavour, milk solids and protein.</div>
+                            {% elif 'milk' in ing or 'cream' in ing or 'curd' in ing or 'cheese' in ing or 'butter' in ing or 'ghee' in ing %}
+                                <span class="detective-role">Dairy</span>
+                                <p>A milk-derived ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, fat, protein or creamy texture depending on the ingredient.</div>
+                            {% elif 'whey' in ing %}
+                                <span class="detective-role">Milk Protein / Dairy</span>
+                                <p>A milk-derived ingredient containing proteins and other milk components.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds dairy solids and protein and can improve texture.</div>
+                            {% elif 'casein' in ing or 'caseinate' in ing %}
+                                <span class="detective-role">Milk Protein</span>
+                                <p>A milk-derived protein.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides protein and functional properties such as texture and stability.</div>
+                            {% elif 'lactose' in ing %}
+                                <span class="detective-role">Milk Sugar</span>
+                                <p>The naturally occurring sugar in milk.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides carbohydrate and dairy solids.</div>
+                            {% elif 'peanut' in ing or 'groundnut' in ing %}
+                                <span class="detective-role">Peanut</span>
+                                <p>A legume commonly used as a food ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides flavour, protein and fat and contributes to texture.</div>
+                            {% elif 'almond' in ing or 'cashew' in ing or 'walnut' in ing or 'pistachio' in ing or 'hazelnut' in ing or 'pecan' in ing or 'macadamia' in ing or 'nut' in ing %}
+                                <span class="detective-role">Tree Nut</span>
+                                <p>A nut ingredient used for flavour and texture.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, fats, protein and texture.</div>
+                            {% elif 'soy lecithin' in ing or 'soya lecithin' in ing %}
+                                <span class="detective-role">Emulsifier</span>
+                                <p>A soy-derived emulsifier.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps oil and water-based ingredients stay evenly mixed.</div>
+                            {% elif 'soy' in ing or 'soya' in ing or 'soybean' in ing %}
+                                <span class="detective-role">Soy Ingredient</span>
+                                <p>An ingredient derived from soybeans.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Can provide protein, flavour, texture or functional properties.</div>
+                            {% elif 'sesame' in ing or 'til' in ing %}
+                                <span class="detective-role">Seed</span>
+                                <p>A sesame seed ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, texture and plant-based fats.</div>
+                            {% elif 'mustard' in ing %}
+                                <span class="detective-role">Spice / Seed</span>
+                                <p>A mustard-derived ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides characteristic flavour and seasoning.</div>
+                            {% elif 'egg' in ing or 'albumin' in ing %}
+                                <span class="detective-role">Egg</span>
+                                <p>An egg-derived ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Can provide protein, structure, binding or texture.</div>
+                            {% elif 'salt' in ing or 'sodium chloride' in ing %}
+                                <span class="detective-role">Salt / Mineral</span>
+                                <p>A seasoning ingredient containing sodium.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds flavour and can contribute to preservation and texture.</div>
+                            {% elif 'citric acid' in ing %}
+                                <span class="detective-role">Acidity Regulator</span>
+                                <p>An organic acid used in food products.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Controls acidity and provides a sour taste.</div>
+                            {% elif 'acidity regulator' in ing or 'acid regulator' in ing %}
+                                <span class="detective-role">Acidity Regulator</span>
+                                <p>A food additive used to control acidity.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps maintain the desired pH and flavour profile.</div>
+                            {% elif 'vegetable oil' in ing or 'palm oil' in ing or 'sunflower oil' in ing or 'coconut oil' in ing or 'oil' in ing %}
+                                <span class="detective-role">Oil / Fat</span>
+                                <p>A fat-containing ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides fat, texture, mouthfeel and sometimes flavour.</div>
+                            {% elif 'butter' in ing %}
+                                <span class="detective-role">Dairy Fat</span>
+                                <p>A dairy fat ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, richness and texture.</div>
+                            {% elif 'lecithin' in ing %}
+                                <span class="detective-role">Emulsifier</span>
+                                <p>An emulsifying ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps ingredients such as oil and water remain mixed.</div>
+                            {% elif 'emulsifier' in ing %}
+                                <span class="detective-role">Food Additive</span>
+                                <p>An ingredient that helps maintain a uniform mixture.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps oil and water-based ingredients stay mixed.</div>
+                            {% elif 'preservative' in ing or 'sodium benzoate' in ing or 'potassium sorbate' in ing %}
+                                <span class="detective-role">Preservative</span>
+                                <p>A food additive used to slow spoilage.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps control microbial growth and extend shelf life.</div>
+                            {% elif 'xanthan gum' in ing or 'guar gum' in ing or 'thickener' in ing or 'stabilizer' in ing %}
+                                <span class="detective-role">Texture / Stabilizer</span>
+                                <p>A functional ingredient used to modify food texture.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Improves thickness, consistency or stability.</div>
+                            {% elif 'starch' in ing %}
+                                <span class="detective-role">Carbohydrate / Thickener</span>
+                                <p>A carbohydrate-based ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides bulk and can thicken or improve texture.</div>
+                            {% elif 'msg' in ing or 'monosodium glutamate' in ing %}
+                                <span class="detective-role">Flavour Enhancer</span>
+                                <p>A flavour-enhancing ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Enhances savoury or umami flavour.</div>
+                            {% elif 'natural' in ing and 'flavour' in ing %}
+                                <span class="detective-role">Natural Flavouring</span>
+                                <p>A flavouring substance described as natural by the ingredient list.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides or enhances flavour.</div>
+                            {% elif 'flavour' in ing or 'flavor' in ing %}
+                                <span class="detective-role">Flavouring</span>
+                                <p>A flavouring ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides or enhances the product's flavour.</div>
+                            {% elif 'colour' in ing or 'color' in ing %}
+                                <span class="detective-role">Food Colour</span>
+                                <p>A colouring ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides or restores the product's colour.</div>
+                            {% elif 'spice' in ing or 'pepper' in ing or 'chilli' in ing or 'turmeric' in ing or 'cumin' in ing or 'coriander' in ing %}
+                                <span class="detective-role">Spice / Herb</span>
+                                <p>A seasoning ingredient.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, aroma and characteristic taste.</div>
+                            {% elif 'maltodextrin' in ing %}
+                                <span class="detective-role">Carbohydrate / Texture Agent</span>
+                                <p>A carbohydrate made from starch and commonly used in processed foods.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds bulk, improves texture and can help carry or distribute flavours and other ingredients.</div>
+                            {% elif 'baking soda' in ing or 'sodium bicarbonate' in ing %}
+                                <span class="detective-role">Leavening Agent</span>
+                                <p>An alkaline food ingredient used in baking.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps dough or batter rise by producing carbon dioxide when it reacts with an acid.</div>
+                            {% elif 'baking powder' in ing %}
+                                <span class="detective-role">Leavening Agent</span>
+                                <p>A mixture that releases carbon dioxide when hydrated and heated.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps baked foods become lighter and more aerated.</div>
+                            {% elif 'pectin' in ing %}
+                                <span class="detective-role">Gelling / Thickening Agent</span>
+                                <p>A plant-derived polysaccharide found naturally in fruits.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Forms gels and helps provide thickness and texture, especially in jams and fruit products.</div>
+                            {% elif 'gelatin' in ing %}
+                                <span class="detective-role">Gelling Agent</span>
+                                <p>A protein-based ingredient made from collagen.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Forms gels and provides structure, texture and stability.</div>
+                            {% elif 'cocoa' in ing or 'cacao' in ing %}
+                                <span class="detective-role">Cocoa Ingredient</span>
+                                <p>A cocoa-derived ingredient used in chocolate-flavoured foods.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Provides chocolate flavour, colour and characteristic cocoa solids.</div>
+                            {% elif 'vanilla' in ing %}
+                                <span class="detective-role">Flavouring</span>
+                                <p>A flavouring ingredient derived from vanilla or containing vanilla flavour compounds.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds vanilla aroma and flavour.</div>
+                            {% elif 'yeast' in ing %}
+                                <span class="detective-role">Leavening / Fermentation Agent</span>
+                                <p>A microorganism used in fermented food production and baking.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Produces carbon dioxide and fermentation products that help dough rise and develop flavour.</div>
+                            {% elif 'ascorbic acid' in ing or 'vitamin c' in ing %}
+                                <span class="detective-role">Antioxidant / Flour Treatment Agent</span>
+                                <p>Ascorbic acid, also known as vitamin C.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps protect food from oxidation and can improve dough handling and strength.</div>
+                            {% elif 'tocopherol' in ing or 'vitamin e' in ing %}
+                                <span class="detective-role">Antioxidant</span>
+                                <p>A vitamin E-related antioxidant compound.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps slow oxidation of fats and oils and supports product stability.</div>
+                            {% elif 'calcium carbonate' in ing %}
+                                <span class="detective-role">Mineral / Food Additive</span>
+                                <p>A calcium-containing mineral compound.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Can provide calcium, regulate acidity or act as a processing ingredient depending on the formulation.</div>
+                            {% elif 'potassium chloride' in ing %}
+                                <span class="detective-role">Mineral / Salt Substitute</span>
+                                <p>A potassium salt used in food formulations.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Can provide a salty taste and may be used to partially replace sodium chloride.</div>
+                            {% elif 'carrageenan' in ing %}
+                                <span class="detective-role">Thickener / Stabilizer</span>
+                                <p>A polysaccharide obtained from certain red seaweeds.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Helps thicken, stabilize or improve the texture of food products.</div>
+                            {% elif 'cellulose' in ing or 'microcrystalline cellulose' in ing %}
+                                <span class="detective-role">Bulking / Texture Agent</span>
+                                <p>A plant-derived carbohydrate polymer.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Adds bulk, improves texture and helps maintain the physical structure of a formulation.</div>
+                            {% elif 'enzyme' in ing %}
+                                <span class="detective-role">Processing Aid / Enzyme</span>
+                                <p>A protein that catalyses a specific biochemical reaction.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Supports specific processing reactions such as dough modification, ripening or texture development.</div>
+                            {% elif 'extract' in ing %}
+                                <span class="detective-role">Plant / Food Extract</span>
+                                <p>An ingredient obtained by extracting compounds from a source material.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Can contribute flavour, colour or other functional properties depending on the source.</div>
+                            {% else %}
+                                <span class="detective-role">Ingredient — details not in built-in guide</span>
+                                <p>This ingredient was found in the product's actual ingredient list, but ProductLens does not have a reliable built-in explanation for this exact term yet.</p>
+                                <div class="detective-use"><strong>Used for:</strong> Check the ingredient's specific name and form on the package before assigning a function.</div>
+                                <a class="ingredient-search" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q={{ ingredient|urlencode }}+food+ingredient+function">🔎 Research this ingredient online</a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">No ingredient list is available for detective analysis.</div>
+                {% endif %}
+            </div>
+
+
+            <!-- INGREDIENT ORDER -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">🧾</div>
+                    <div>
+                        <h4>Ingredient Order</h4>
+                        <p>Ingredients displayed in their listed order.</p>
+                    </div>
+                </div>
+
+                {% if product.ingredient_order %}
+                    <ol class="ingredient-list">
+                        {% for ingredient in product.ingredient_order %}
+                            <li class="ingredient-item">
+                                <span class="number">{{ loop.index }}</span>
+                                <span>{{ ingredient }}</span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <div class="empty">Ingredient order is not available for this product.</div>
+                {% endif %}
+            </div>
+
+
+            <!-- INGREDIENT CATEGORIES -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">🧩</div>
+                    <div>
+                        <h4>Ingredient Categories</h4>
+                        <p>Ingredients grouped by their detected role/type.</p>
+                    </div>
+                </div>
+
+                {% if product.ingredient_categories %}
+                    <div class="category-grid">
+                        {% for category in product.ingredient_categories %}
+                            <div class="category">
+                                <div class="category-title">{{ category.icon }} {{ category.title }}</div>
+                                {% for ingredient in category.ingredients %}
+                                    <span class="tag">{{ ingredient }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty">No ingredient categories could be identified.</div>
+                {% endif %}
+            </div>
+
+
+            <!-- RAW INGREDIENTS -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">📋</div>
+                    <div>
+                        <h4>Original Ingredient List</h4>
+                        <p>Ingredient information received from the database.</p>
+                    </div>
+                </div>
+
+                {% if product.ingredients %}
+                    <div style="font-size:12px;line-height:1.8;color:#475467;background:#f8fafc;padding:13px;border-radius:12px;border:1px solid #edf0f4;">
+                        {{ product.ingredients }}
+                    </div>
+                {% else %}
+                    <div class="empty">No ingredient list is available.</div>
+                {% endif %}
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- HEALTH CAUTIONS -->
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>🩺 Health Cautions</h3>
+                <p>General food-information flags, not medical diagnosis.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            {% if product.disease_cautions %}
+                {% for caution in product.disease_cautions %}
+                    <div class="caution {{ caution.class }}">
+                        <strong>{{ caution.icon }} {{ caution.title }}</strong>
+                        <p>{{ caution.text }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">✅ No specific caution was triggered by the current thresholds.</div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% endif %}
+
+
+    {% if comparison %}
+    <!-- COMPARISON -->
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>⚖️ Product Comparison</h3>
+                <p>Side-by-side nutrition comparison.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;padding:11px;border-bottom:1px solid #e5eaf1;">Nutrient</th>
+                            <th style="padding:11px;border-bottom:1px solid #e5eaf1;">{{ comparison.product1.name }}</th>
+                            <th style="padding:11px;border-bottom:1px solid #e5eaf1;">{{ comparison.product2.name }}</th>
+                            <th style="padding:11px;border-bottom:1px solid #e5eaf1;">Insight</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in comparison.rows %}
+                        <tr>
+                            <td style="padding:11px;border-bottom:1px solid #edf0f4;font-weight:700;">{{ row.label }}</td>
+                            <td style="padding:11px;text-align:center;border-bottom:1px solid #edf0f4;">{{ row.value1 }} {{ row.unit }}</td>
+                            <td style="padding:11px;text-align:center;border-bottom:1px solid #edf0f4;">{{ row.value2 }} {{ row.unit }}</td>
+                            <td style="padding:11px;text-align:center;border-bottom:1px solid #edf0f4;color:#2563eb;font-weight:700;">{{ row.result }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if comparison.insights %}
+            <div style="margin-top:17px;">
+                <strong style="font-size:13px;">💡 Comparison Insights</strong>
+                <ul style="margin:8px 0 0 18px;font-size:12px;color:#667085;">
+                    {% for insight in comparison.insights %}
+                        <li>{{ insight }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+</main>
+
+<footer class="footer">
+    ProductLens • Food Ingredient & Nutrition Intelligence
+</footer>
+
+
+<!-- BARCODE SCANNER -->
+<div id="scannerModal">
+    <div class="scanner-box">
+        <h3>📷 Scan Product Barcode</h3>
+        <p>Allow camera access and place the barcode inside the scanning area.</p>
+
+        <div id="reader"></div>
+
+        <button class="btn btn-light scanner-close" onclick="closeScanner()">Close Scanner</button>
+    </div>
+</div>
+
+
+<script>
+    function toggleBox(id) {
+        const box = document.getElementById(id);
+        if (!box) return;
+
+        if (box.classList.contains("show")) {
+            box.classList.remove("show");
+        } else {
+            box.classList.add("show");
+            box.scrollIntoView({behavior: "smooth", block: "center"});
+        }
+    }
+
+    let scanner = null;
+
+    function openScanner() {
+        const modal = document.getElementById("scannerModal");
+        modal.classList.add("open");
+
+        if (typeof Html5Qrcode === "undefined") {
+            loadScannerLibrary();
+        } else {
+            startScanner();
+        }
+    }
+
+    function loadScannerLibrary() {
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/html5-qrcode";
+        script.onload = startScanner;
+        script.onerror = function() {
+            alert("Barcode scanner library could not load. You can enter the barcode manually.");
+        };
+        document.head.appendChild(script);
+    }
+
+    function startScanner() {
+        if (scanner) return;
+
+        scanner = new Html5Qrcode("reader");
+
+        const config = {
+            fps: 10,
+            qrbox: {width: 280, height: 150},
+            aspectRatio: 1.777
+        };
+
+        scanner.start(
+            {facingMode: "environment"},
+            config,
+            function(decodedText) {
+                document.getElementById("barcodeInput").value = decodedText;
+                closeScanner();
+
+                setTimeout(function() {
+                    document.querySelector('form[action="/search"]').submit();
+                }, 250);
+            },
+            function(errorMessage) {}
+        ).catch(function(error) {
+            console.log(error);
+            alert("Camera could not be started. Please check browser camera permission or enter the barcode manually.");
+        });
+    }
+
+    function closeScanner() {
+        const modal = document.getElementById("scannerModal");
+        modal.classList.remove("open");
+
+        if (scanner) {
+            scanner.stop()
+                .then(function() {
+                    scanner.clear();
+                    scanner = null;
+                })
+                .catch(function() {
+                    scanner = null;
+                });
+        }
+    }
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            closeScanner();
+        }
+    });
+</script>
+
+</body>
+</html>
