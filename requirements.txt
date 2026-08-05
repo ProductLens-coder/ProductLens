@@ -43,3 +43,4 @@ uvicorn==0.52.1
 watchdog==6.0.0
 websockets==16.1.1
 Werkzeug==3.1.8
+gunicorn
