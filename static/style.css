@@ -371,10 +371,11 @@ body {
 ========================================================= */
 
 .result-card {
-    margin: 35px auto;
-    padding: 35px;
+    width: 95%;
+    max-width: 1350px;
 
-    max-width: 1050px;
+    margin: 40px auto;
+    padding: 40px;
 
     background: rgba(255, 255, 255, 0.94);
 
@@ -388,16 +389,14 @@ body {
     animation: fadeUp 0.5s ease;
 }
 
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 30px;
-    align-items: center;
-
-    padding-bottom: 25px;
-    border-bottom: 1px solid #e2e8f0;
+..result-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:40px;
+    padding-bottom:30px;
+    border-bottom:1px solid #e2e8f0;
 }
-
 .result-label {
     color: #00a878;
     font-size: 13px;
@@ -416,41 +415,41 @@ body {
     margin-top: 5px;
 }
 
-.product-image-container {
-    width: 180px;
-    height: 180px;
+.product-image-container{
+    width:230px;
+    height:230px;
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background:#f8fafc;
 
-    background: #f8fafc;
-    border-radius: 20px;
-    padding: 15px;
+    border-radius:24px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:18px;
 }
 
-.product-image {
-    max-width: 100%;
-    max-height: 150px;
-    object-fit: contain;
+.product-image{
+    max-width:100%;
+    max-height:200px;
+    object-fit:contain;
 }
-
 /* =========================================================
    INFO BOX
 ========================================================= */
 
-.info-box {
-    margin-top: 25px;
-    padding: 24px;
+.info-box{
 
-    background: #f8fafc;
-    border-radius: 20px;
+    margin-top:30px;
 
-    border-left: 5px solid #14b8a6;
-}
+    padding:28px;
 
-.info-box h3 {
-    margin-bottom: 10px;
+    background:#f8fafc;
+
+    border-radius:22px;
+
+    border-left:6px solid #14b8a6;
 }
 
 .info-box p {
@@ -476,10 +475,13 @@ body {
     margin-bottom: 20px;
 }
 
-.decoder-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+.decoder-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+
+    gap:18px;
 }
 
 .decoder-item {
@@ -500,12 +502,15 @@ body {
    NUTRITION
 ========================================================= */
 
-.nutrition-grid {
-    margin-top: 25px;
+.nutrition-grid{
 
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 15px;
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+
+    gap:20px;
+
+    margin-top:30px;
 }
 
 .nutrition-item {
@@ -586,11 +591,15 @@ body {
     font-size: 13px;
 }
 
-.allergen-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+.allergen-tags{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:12px;
+
+    margin-top:18px;
 }
 
 .allergen-tag {
@@ -921,21 +930,53 @@ footer {
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .indicator-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .compare-form {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-products {
+        grid-template-columns: 1fr;
+    }
+
+    .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 25px;
+    }
+
+    .product-image-container {
+        width: 100%;
+        max-width: 260px;
+        margin: auto;
+    }
+
 }
 
 @media (max-width: 650px) {
 
     .navbar {
         padding: 15px 5%;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .nav-links {
         gap: 12px;
         font-size: 13px;
+        flex-wrap: wrap;
     }
 
     .hero {
         padding: 45px 5% 50px;
+        gap: 35px;
     }
 
     .hero h1 {
@@ -952,16 +993,31 @@ footer {
     }
 
     .result-card {
-        padding: 22px;
+        width: 96%;
+        margin: 20px auto;
+        padding: 18px;
+        border-radius: 20px;
     }
 
     .result-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 20px;
+    }
+
+    .result-header h2 {
+        font-size: 28px;
     }
 
     .product-image-container {
         width: 100%;
+        max-width: 220px;
+        height: auto;
+        margin: auto;
+    }
+
+    .product-image {
+        max-height: 180px;
     }
 
     .decoder-grid {
@@ -969,57 +1025,86 @@ footer {
     }
 
     .nutrition-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+    }
+
+    .indicator-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .category-grid {
+        grid-template-columns: 1fr;
     }
 
     .compare-section {
-        margin-left: 5%;
-        margin-right: 5%;
-        padding: 35px 5%;
+        margin: 20px 5%;
+        padding: 30px 5%;
     }
 
     .compare-form {
         grid-template-columns: 1fr;
     }
 
-    .vs {
-        height: 30px;
-    }
-
     .comparison-products {
         grid-template-columns: 1fr;
     }
 
-    .comparison-vs {
+    .comparison-vs,
+    .vs {
         height: 30px;
+    }
+
+    .analysis-dashboard {
+        padding: 20px;
+    }
+
+    .score-section {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .score-circle {
+        --size: 120px;
+    }
+
+    .score-circle::before {
+        width: 90px;
+        height: 90px;
+    }
+
+    .score-inner strong {
+        font-size: 30px;
+    }
+
+    .manual-box {
+        margin: 15px;
+        padding: 20px;
     }
 
     .section-title {
         font-size: 28px;
     }
-
 }
+
 /* =========================================================
    PRODUCT ANALYSIS DASHBOARD
 ========================================================= */
 
-.analysis-dashboard {
+.analysis-dashboard{
 
-    margin-top: 30px;
-    padding: 30px;
+    margin-top:35px;
 
-    background:
-        linear-gradient(
-            135deg,
-            rgba(20, 184, 166, 0.06),
-            rgba(124, 58, 237, 0.06),
-            rgba(249, 115, 22, 0.04)
-        );
+    padding:35px;
 
-    border: 1px solid #e2e8f0;
+    border-radius:30px;
 
-    border-radius: 28px;
+    background:linear-gradient(
+        135deg,
+        rgba(20,184,166,.06),
+        rgba(124,58,237,.05)
+    );
 
+    border:1px solid #e2e8f0;
 }
 
 
