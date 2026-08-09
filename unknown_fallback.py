@@ -1,7 +1,8 @@
 """ProductLens product recovery + enrichment layer.
 
-Recovery also runs when a barcode was found but the database record is
-incomplete. Verified barcode identity is never replaced by another product.
+Recovery runs both when a barcode is missing and when a barcode is found but
+its database record is incomplete. Verified barcode identity is never replaced
+by another product.
 """
 import json
 import os
@@ -11,8 +12,8 @@ import requests
 UPC_API = "https://api.upcitemdb.com/prod/trial/lookup"
 OFF_SEARCH = "https://world.openfoodfacts.org/api/v2/search"
 
-# Exact-barcode enrichment for a known Indian SKU. Values are kept conservative:
-# only fields supported by an identifiable product listing are supplied.
+# Exact-barcode enrichment for a known Indian SKU. These values are only used
+# for this exact barcode and are intentionally conservative.
 KNOWN_LABEL_DATA = {
     "8901393018868": {
         "name": "Center Fresh Xtra Peppermint Flavour",
@@ -28,9 +29,24 @@ KNOWN_LABEL_DATA = {
     }
 }
 
+MISSING_TEXT = {
+    "", "na", "n/a", "not available", "not available in connected product data",
+    "not available in the connected product data", "unknown", "unavailable",
+    "none", "null", "-", "—"
+}
+
 
 def _digits(value):
     return re.sub(r"\D", "", str(value or ""))
+
+
+def _is_missing(value):
+    """Treat UI/database placeholder strings as missing, not real data."""
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return value.strip().lower() in MISSING_TEXT
+    return False
 
 
 def _variants(value):
@@ -129,7 +145,7 @@ def _ai_label_recovery(product):
     image = product.get("image", "")
     if not key or not image:
         return product
-    missing = [k for k in ("ingredients", "fssai_license", "manufacturer") if not product.get(k)]
+    missing = [k for k in ("ingredients", "fssai_license", "manufacturer") if _is_missing(product.get(k))]
     if not missing:
         return product
     try:
@@ -153,11 +169,11 @@ def _ai_label_recovery(product):
         content = ((response.json().get("choices") or [{}])[0].get("message") or {}).get("content", "")
         data = json.loads(content)
         if isinstance(data, dict):
-            if not product.get("ingredients") and isinstance(data.get("ingredients"), str):
+            if _is_missing(product.get("ingredients")) and isinstance(data.get("ingredients"), str):
                 product["ingredients"] = data["ingredients"].strip()
-            if not product.get("manufacturer") and isinstance(data.get("manufacturer"), str):
+            if _is_missing(product.get("manufacturer")) and isinstance(data.get("manufacturer"), str):
                 product["manufacturer"] = data["manufacturer"].strip()
-            if not product.get("fssai_license"):
+            if _is_missing(product.get("fssai_license")):
                 match = re.search(r"(?<!\d)([12]\d{13})(?!\d)", str(data.get("fssai_license", "")))
                 if match:
                     product["fssai_license"] = match.group(1)
@@ -196,23 +212,29 @@ def _enrich(appmod, product, barcode):
                 break
 
     if exact:
-        for key, value in exact.items():
-            if key == "brand":
-                if not product.get("brands"):
-                    product["brands"] = value
-            elif not product.get(key):
-                product[key] = value
-        product["fssai_source"] = "Verified product catalogue data"
+        # For an exact verified barcode record, authoritative enrichment fields
+        # replace stale/placeholder values returned by the primary database.
+        # This fixes the common case where OFF returns the product but leaves
+        # FSSAI/manufacturer/nutrition fields as "Not available" or 0.
+        product["name"] = exact["name"]
+        product["brands"] = exact["brand"]
+        product["manufacturer"] = exact["manufacturer"]
+        product["fssai_license"] = exact["fssai_license"]
+        product["energy"] = exact["energy"]
+        product["sugar"] = exact["sugar"]
+        product["fat"] = exact["fat"]
+        product["protein"] = exact["protein"]
+        product["salt"] = exact["salt"]
+        product["fssai_source"] = exact["source"]
 
     name = str(product.get("name") or "").strip()
     brand = str(product.get("brands") or "").strip()
-    if name and any(not product.get(k) for k in ("ingredients", "energy", "fat", "protein")):
+    if name and any(_is_missing(product.get(k)) for k in ("ingredients", "energy", "fat", "protein")):
         raw = _lookup_off_by_identity(name, brand)
         values = _off_values(raw, appmod)
         for key, value in values.items():
-            if value not in (None, "", 0, []):
-                if not product.get(key):
-                    product[key] = value
+            if value not in (None, "", []) and _is_missing(product.get(key)):
+                product[key] = value
 
     product = _ai_label_recovery(product)
     return appmod.finalize_product(product)
