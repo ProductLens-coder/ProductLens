@@ -1037,22 +1037,30 @@ def get_ingredient_list(product):
 # ============================================================
 
 def get_ingredient_explanation(ingredient):
+    """
+    Intelligent ingredient explanation engine.
+
+    Matching priority:
+    1. Exact ingredient match
+    2. Common ingredient variants
+    3. Singular/plural normalization
+    4. Specific phrase matching
+    5. Safe generic explanation
+    """
 
     original = clean_text(ingredient)
-
     normalized = normalize_ingredient(original)
 
     if not normalized:
-
         return {
             "name": original,
             "category": "Ingredient",
             "used_for": "Ingredient information is not available.",
         }
 
-    # --------------------------------------------------------
-    # Exact match
-    # --------------------------------------------------------
+    # ========================================================
+    # 1. EXACT MATCH
+    # ========================================================
 
     if normalized in INGREDIENT_GUIDE:
 
@@ -1064,11 +1072,109 @@ def get_ingredient_explanation(ingredient):
             "used_for": info["used_for"],
         }
 
-    # --------------------------------------------------------
-    # More intelligent matching
-    # --------------------------------------------------------
+    # ========================================================
+    # 2. COMMON INGREDIENT VARIANTS
+    # ========================================================
 
-    # Longest keys first
+    variant_map = {
+
+        # Potato
+        "potatoes": "potato",
+        "potato powder": "potato",
+        "potato flakes": "potato",
+        "potato granules": "potato",
+
+        # Tomato
+        "tomatoes": "tomato",
+        "tomato powder": "tomato",
+        "tomato paste": "tomato",
+
+        # Onion
+        "onions": "onion",
+        "onion powder": "onion",
+        "onion flakes": "onion",
+
+        # Garlic
+        "garlic powder": "garlic",
+        "garlic flakes": "garlic",
+
+        # Wheat
+        "wheat grains": "wheat",
+        "wheat grain": "wheat",
+
+        # Rice
+        "rice grains": "rice",
+        "rice grain": "rice",
+
+        # Corn
+        "corn starch": "corn starch",
+
+        # Oat
+        "oat flakes": "oats",
+        "rolled oats": "oats",
+
+        # Milk
+        "milk solids": "milk",
+        "milk solids non fat": "milk",
+        "milk solids-not-fat": "milk",
+
+        # Sugar
+        "sugars": "sugar",
+        "cane sugar": "sugar",
+        "sucrose": "sugar",
+
+        # Oil
+        "vegetable oils": "vegetable oil",
+        "sunflower oil": "sunflower oil",
+        "palm oil": "palm oil",
+
+        # Salt
+        "sodium chloride": "sodium chloride",
+    }
+
+    if normalized in variant_map:
+
+        mapped_key = variant_map[normalized]
+
+        if mapped_key in INGREDIENT_GUIDE:
+
+            info = INGREDIENT_GUIDE[mapped_key]
+
+            return {
+                "name": original,
+                "category": info["category"],
+                "used_for": info["used_for"],
+            }
+
+    # ========================================================
+    # 3. SIMPLE PLURAL NORMALIZATION
+    # ========================================================
+
+    singular = normalized
+
+    if singular.endswith("ies") and len(singular) > 4:
+        singular = singular[:-3] + "y"
+
+    elif singular.endswith("es") and len(singular) > 4:
+        singular = singular[:-2]
+
+    elif singular.endswith("s") and not singular.endswith("ss"):
+        singular = singular[:-1]
+
+    if singular in INGREDIENT_GUIDE:
+
+        info = INGREDIENT_GUIDE[singular]
+
+        return {
+            "name": original,
+            "category": info["category"],
+            "used_for": info["used_for"],
+        }
+
+    # ========================================================
+    # 4. SPECIFIC PHRASE MATCHING
+    # ========================================================
+
     guide_keys = sorted(
         INGREDIENT_GUIDE.keys(),
         key=len,
@@ -1082,8 +1188,11 @@ def get_ingredient_explanation(ingredient):
         if not key_normalized:
             continue
 
-        # Word-aware partial matching
-        if key_normalized in normalized:
+        # Exact phrase contained in ingredient
+        if re.search(
+            r"\b" + re.escape(key_normalized) + r"\b",
+            normalized
+        ):
 
             info = INGREDIENT_GUIDE[key]
 
@@ -1093,9 +1202,9 @@ def get_ingredient_explanation(ingredient):
                 "used_for": info["used_for"],
             }
 
-    # --------------------------------------------------------
-    # Generic intelligent classification
-    # --------------------------------------------------------
+    # ========================================================
+    # 5. SAFE GENERIC CLASSIFICATION
+    # ========================================================
 
     category = "Ingredient"
 
@@ -1103,6 +1212,10 @@ def get_ingredient_explanation(ingredient):
         "Used as part of the product's formulation to contribute "
         "to its texture, flavour, stability or nutritional composition."
     )
+
+    # --------------------------------------------------------
+    # Grains / starches
+    # --------------------------------------------------------
 
     if any(
         word in normalized
@@ -1117,9 +1230,26 @@ def get_ingredient_explanation(ingredient):
         category = "Starch / Grain"
 
         explanation = (
-            "Provides carbohydrate-based bulk and is commonly used "
-            "to contribute to texture, structure or binding."
+            "Provides carbohydrate-based bulk and may contribute "
+            "to texture, structure or binding."
         )
+
+    # --------------------------------------------------------
+    # Potato-related ingredients
+    # --------------------------------------------------------
+
+    elif "potato" in normalized:
+
+        category = "Vegetable / Starch"
+
+        explanation = (
+            "Provides starch and bulk and is commonly used to "
+            "contribute to texture in processed foods."
+        )
+
+    # --------------------------------------------------------
+    # Oils / fats
+    # --------------------------------------------------------
 
     elif any(
         word in normalized
@@ -1136,6 +1266,10 @@ def get_ingredient_explanation(ingredient):
             "Provides fat and contributes to texture, mouthfeel "
             "and food-processing properties."
         )
+
+    # --------------------------------------------------------
+    # Sweeteners
+    # --------------------------------------------------------
 
     elif any(
         word in normalized
@@ -1154,6 +1288,10 @@ def get_ingredient_explanation(ingredient):
             "to texture, moisture and browning."
         )
 
+    # --------------------------------------------------------
+    # Acidity
+    # --------------------------------------------------------
+
     elif any(
         word in normalized
         for word in [
@@ -1169,6 +1307,10 @@ def get_ingredient_explanation(ingredient):
             "Used to control acidity and may contribute "
             "to flavour and product stability."
         )
+
+    # --------------------------------------------------------
+    # Thickeners
+    # --------------------------------------------------------
 
     elif any(
         word in normalized
@@ -1187,6 +1329,10 @@ def get_ingredient_explanation(ingredient):
             "Used to improve thickness, texture or stability "
             "of the food formulation."
         )
+
+    # --------------------------------------------------------
+    # Preservatives
+    # --------------------------------------------------------
 
     elif any(
         word in normalized
@@ -1207,6 +1353,10 @@ def get_ingredient_explanation(ingredient):
             "extend shelf life."
         )
 
+    # --------------------------------------------------------
+    # Emulsifiers
+    # --------------------------------------------------------
+
     elif any(
         word in normalized
         for word in [
@@ -1224,6 +1374,10 @@ def get_ingredient_explanation(ingredient):
             "remain evenly distributed."
         )
 
+    # --------------------------------------------------------
+    # Flavourings
+    # --------------------------------------------------------
+
     elif any(
         word in normalized
         for word in [
@@ -1240,6 +1394,10 @@ def get_ingredient_explanation(ingredient):
             "Used to provide or enhance the flavour or aroma "
             "of the product."
         )
+
+    # --------------------------------------------------------
+    # Nutrients
+    # --------------------------------------------------------
 
     elif any(
         word in normalized
@@ -1260,6 +1418,10 @@ def get_ingredient_explanation(ingredient):
             "fortification."
         )
 
+    # --------------------------------------------------------
+    # Protein
+    # --------------------------------------------------------
+
     elif any(
         word in normalized
         for word in [
@@ -1275,6 +1437,10 @@ def get_ingredient_explanation(ingredient):
             "nutritional or structural properties of the product."
         )
 
+    # --------------------------------------------------------
+    # Salt
+    # --------------------------------------------------------
+
     elif any(
         word in normalized
         for word in [
@@ -1289,6 +1455,10 @@ def get_ingredient_explanation(ingredient):
             "Used mainly to provide salty flavour and can "
             "also influence food preservation."
         )
+
+    # --------------------------------------------------------
+    # Colouring
+    # --------------------------------------------------------
 
     elif any(
         word in normalized
@@ -1311,8 +1481,6 @@ def get_ingredient_explanation(ingredient):
         "category": category,
         "used_for": explanation,
     }
-
-
 # ============================================================
 # INGREDIENT ORDER
 # ============================================================
@@ -2563,7 +2731,7 @@ def compare():
                 product=None,
                 result=None,
                 error=(
-                    "Please enter both "
+                    "Please enter both "    
                     "product barcodes."
                 ),
                 comparison=None,
