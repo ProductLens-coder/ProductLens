@@ -24,24 +24,20 @@ jobs:
           path = Path('app.py')
           text = path.read_text(encoding='utf-8')
 
-          old = '''# =========================================================\n# OPEN FOOD FACTS\n# =========================================================\ndef get_from_open_food_facts(barcode):'''
+          marker = 'def get_from_open_food_facts(barcode):'
+          if marker not in text:
+              raise SystemExit('Open Food Facts function not found; refusing unsafe patch.')
 
-          new = '''# =========================================================\n# ROBUST INGREDIENT EXTRACTION\n# =========================================================\ndef extract_off_ingredients(raw):\n\n    # Prefer the human-readable ingredient text when available.\n    candidates = [\n        raw.get("ingredients_text"),\n        raw.get("ingredients_text_en"),\n        raw.get("ingredients_text_with_allergens"),\n        raw.get("ingredients_text_with_allergens_en")\n    ]\n\n    for value in candidates:\n        if value and str(value).strip():\n            return str(value).strip()\n\n    # Some Open Food Facts records only contain the structured ingredients array.\n    structured = raw.get("ingredients") or []\n    parts = []\n\n    if isinstance(structured, list):\n        for item in structured:\n            if not isinstance(item, dict):\n                continue\n\n            name = (\n                item.get("text")\n                or item.get("text_en")\n                or item.get("id")\n                or ""\n            )\n\n            if name and str(name).strip():\n                parts.append(str(name).strip())\n\n    if parts:\n        return ", ".join(parts)\n\n    return ""\n\n\n# =========================================================\n# OPEN FOOD FACTS\n# =========================================================\ndef get_from_open_food_facts(barcode):'''
-
-          if old not in text:
-              raise SystemExit('OPEN FOOD FACTS marker not found; refusing unsafe patch.')
+          helper = '''def extract_off_ingredients(raw):\n\n    candidates = [\n        raw.get("ingredients_text"),\n        raw.get("ingredients_text_en"),\n        raw.get("ingredients_text_with_allergens"),\n        raw.get("ingredients_text_with_allergens_en")\n    ]\n\n    for value in candidates:\n        if value and str(value).strip():\n            return str(value).strip()\n\n    structured = raw.get("ingredients") or []\n    parts = []\n\n    if isinstance(structured, list):\n        for item in structured:\n            if not isinstance(item, dict):\n                continue\n            name = (\n                item.get("text")\n                or item.get("text_en")\n                or item.get("id")\n                or ""\n            )\n            if name and str(name).strip():\n                parts.append(str(name).strip())\n\n    return ", ".join(parts) if parts else ""\n\n\n'''
 
           if 'def extract_off_ingredients(raw):' not in text:
-              text = text.replace(old, new, 1)
+              text = text.replace(marker, helper + marker, 1)
 
           old_assignment = '''        ingredients = raw.get(\n            "ingredients_text",\n            ""\n        ) or ""'''
-
-          new_assignment = '''        ingredients = extract_off_ingredients(raw)'''
-
           if old_assignment not in text:
               raise SystemExit('Expected ingredient assignment not found; refusing unsafe patch.')
 
-          text = text.replace(old_assignment, new_assignment, 1)
+          text = text.replace(old_assignment, '        ingredients = extract_off_ingredients(raw)', 1)
           path.write_text(text, encoding='utf-8')
 
       - name: Validate Python syntax
@@ -55,5 +51,5 @@ jobs:
           git add app.py
           git rm .github/workflows/ingredient-fix.yml
           git diff --cached --quiet && exit 0
-          git commit -m "Fix ingredient extraction [skip ci]"
+          git commit -m "Fix robust ingredient extraction [skip ci]"
           git push
