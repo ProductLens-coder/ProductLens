@@ -221,6 +221,16 @@ def normalize_barcodes(barcode):
     if len(barcode) == 13 and barcode.startswith("0"):
         codes.append(barcode[1:])
 
+    # GTIN-14 commonly stores an EAN-13 with a leading 0
+    if len(barcode) == 14 and barcode.startswith("0"):
+        codes.append(barcode[1:])
+        if barcode[1] == "0":
+            codes.append(barcode[2:])
+
+    # EAN-8 is already directly searchable, but keep it explicit
+    if len(barcode) == 8:
+        codes.append(barcode)
+
     # Remove duplicates
     return list(dict.fromkeys(codes))
 
@@ -2108,6 +2118,55 @@ def get_from_usda(barcode):
 
 
 # =========================================================
+# OPEN FOOD FACTS SEARCH FALLBACK
+# =========================================================
+def get_from_off_search(barcode):
+    """Fallback lookup for products whose direct barcode endpoint misses."""
+    try:
+        response = requests.get(
+            "https://world.openfoodfacts.org/api/v2/search",
+            params={
+                "code": str(barcode),
+                "page_size": 1,
+                "fields": "code,product_name,product_name_en,brands,image_front_url,ingredients_text,ingredients_text_en,ingredients_text_with_allergens,ingredients_text_with_allergens_en,allergens,allergens_from_ingredients,allergens_tags,allergens_hierarchy,nutriments"
+            },
+            headers=HEADERS,
+            timeout=12
+        )
+        response.raise_for_status()
+        data = response.json()
+        products = data.get("products") or []
+        if not products:
+            return None
+
+        raw = products[0]
+        raw["status"] = 1
+        # Reuse the exact OFF parser by feeding the returned product through
+        # a tiny local reconstruction of the fields it expects.
+        nutrition = raw.get("nutriments", {}) or {}
+        product = {
+            "name": raw.get("product_name") or raw.get("product_name_en") or "Unknown Product",
+            "brands": raw.get("brands", ""),
+            "barcode": raw.get("code") or str(barcode),
+            "image": raw.get("image_front_url", ""),
+            "ingredients": extract_off_ingredients(raw),
+            "allergens": " ".join(str(v) for v in [raw.get("allergens", ""), raw.get("allergens_from_ingredients", ""), raw.get("allergens_hierarchy", "")] if v),
+            "allergen_tags": " ".join(str(v) for v in (raw.get("allergens_tags") or [])),
+            "energy": safe_number(nutrition.get("energy-kcal_100g", nutrition.get("energy-kcal", 0))),
+            "sugar": safe_number(nutrition.get("sugars_100g", nutrition.get("sugar_100g", 0))),
+            "fat": safe_number(nutrition.get("fat_100g", 0)),
+            "protein": safe_number(nutrition.get("proteins_100g", nutrition.get("protein_100g", 0))),
+            "salt": safe_number(nutrition.get("salt_100g", 0)),
+            "source": "Open Food Facts",
+            "verified": True
+        }
+        return finalize_product(product)
+    except (requests.RequestException, ValueError, TypeError, KeyError) as exc:
+        print("OFF search fallback error:", exc)
+        return None
+
+
+# =========================================================
 # SEARCH PRODUCT
 # =========================================================
 
@@ -2140,8 +2199,17 @@ def search_product(barcode):
         return product
 
     print(
-        "OFF: Product not found."
+        "OFF: Product not found by direct barcode endpoint."
     )
+
+    # -----------------------------------------
+    # OPEN FOOD FACTS SEARCH FALLBACK
+    # -----------------------------------------
+    for code in normalize_barcodes(barcode):
+        product = get_from_off_search(code)
+        if product:
+            print("SUCCESS: Product found using Open Food Facts search fallback.")
+            return product
 
     # -----------------------------------------
     # DATABASE 2
