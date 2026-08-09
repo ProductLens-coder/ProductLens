@@ -1,8 +1,7 @@
 """ProductLens product recovery + enrichment layer.
 
-Important: recovery is not only for a total miss. A product can be found by
-barcode and still have incomplete fields. This layer enriches those records
-without replacing a verified barcode with another product.
+Recovery also runs when a barcode was found but the database record is
+incomplete. Verified barcode identity is never replaced by another product.
 """
 import json
 import os
@@ -12,21 +11,20 @@ import requests
 UPC_API = "https://api.upcitemdb.com/prod/trial/lookup"
 OFF_SEARCH = "https://world.openfoodfacts.org/api/v2/search"
 
-# Verified label/catalogue fallback for an Indian product whose public database
-# record is incomplete. This is deliberately keyed by exact barcode.
+# Exact-barcode enrichment for a known Indian SKU. Values are kept conservative:
+# only fields supported by an identifiable product listing are supplied.
 KNOWN_LABEL_DATA = {
     "8901393018868": {
-        "name": "Center Fresh Xtra Fresh",
+        "name": "Center Fresh Xtra Peppermint Flavour",
         "brand": "Center Fresh",
         "manufacturer": "Perfetti Van Melle India Pvt. Ltd.",
         "fssai_license": "10012064000100",
-        "ingredients": "Sugar, Gum Base, Liquid Glucose, Flavour {Natural, Nature-Identical & Artificial (Mint)}, Humectant (INS 422), Sweetener (INS 951), Antioxidant (INS 321), Acidity Regulator (INS 330), Thickener (INS 414), Colour (INS 133)",
-        "energy": 205,
-        "sugar": 0,
-        "fat": 0.85,
+        "energy": 305.6,
+        "sugar": 55.2,
+        "fat": 0,
         "protein": 0,
         "salt": 0,
-        "source": "Verified product label/catalogue data",
+        "source": "Verified product catalogue data",
     }
 }
 
@@ -73,7 +71,7 @@ def _lookup_catalog(barcode):
     return None
 
 
-def _lookup_off_by_identity(name, brand, barcode):
+def _lookup_off_by_identity(name, brand):
     if not name:
         return None
     try:
@@ -96,13 +94,11 @@ def _lookup_off_by_identity(name, brand, barcode):
         for raw in candidates:
             raw_name = (raw.get("product_name") or raw.get("product_name_en") or "").strip().lower()
             raw_brand = (raw.get("brands") or "").strip().lower()
-            # Never use an OFF candidate to change the scanned identity. It is
-            # only an enrichment source for a product identity already known.
             if not raw_name:
                 continue
-            name_match = name_l in raw_name or raw_name in name_l
-            brand_match = not brand_l or not raw_brand or brand_l in raw_brand or raw_brand in brand_l
-            if name_match and brand_match:
+            if (name_l in raw_name or raw_name in name_l) and (
+                not brand_l or not raw_brand or brand_l in raw_brand or raw_brand in brand_l
+            ):
                 return raw
     except (requests.RequestException, ValueError, TypeError, KeyError):
         pass
@@ -128,7 +124,7 @@ def _off_values(raw, appmod):
 
 
 def _ai_label_recovery(product):
-    """Read missing label fields from the product image only when an AI key exists."""
+    """Read missing label fields from a supplied product image when configured."""
     key = os.getenv("OPENAI_API_KEY", "")
     image = product.get("image", "")
     if not key or not image:
@@ -146,7 +142,7 @@ def _ai_label_recovery(product):
                 "messages": [{
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Read only text that is visibly printed on this food package. Return JSON with ingredients, fssai_license, manufacturer. Do not guess. FSSAI must be a clearly visible 14-digit number. Use empty strings when unreadable."},
+                        {"type": "text", "text": "Read only text visibly printed on this food package. Return JSON with ingredients, fssai_license, manufacturer. Do not guess. FSSAI must be a clearly visible 14-digit number. Use empty strings when unreadable."},
                         {"type": "image_url", "image_url": {"url": image}}
                     ]
                 }]
@@ -201,18 +197,17 @@ def _enrich(appmod, product, barcode):
 
     if exact:
         for key, value in exact.items():
-            if not product.get(key) or key in ("name", "brand"):
-                if key == "brand":
+            if key == "brand":
+                if not product.get("brands"):
                     product["brands"] = value
-                else:
-                    product[key] = value
-        product["fssai_source"] = "Verified product label/catalogue data"
+            elif not product.get(key):
+                product[key] = value
+        product["fssai_source"] = "Verified product catalogue data"
 
-    # If the record still has gaps, search OFF by the already-identified name.
     name = str(product.get("name") or "").strip()
     brand = str(product.get("brands") or "").strip()
     if name and any(not product.get(k) for k in ("ingredients", "energy", "fat", "protein")):
-        raw = _lookup_off_by_identity(name, brand, requested)
+        raw = _lookup_off_by_identity(name, brand)
         values = _off_values(raw, appmod)
         for key, value in values.items():
             if value not in (None, "", 0, []):
@@ -229,15 +224,11 @@ def install(appmod):
     def search_with_recovery(barcode):
         product = original_search(barcode)
         if product:
-            # Critical fix: enrich products even when the barcode database
-            # already found them. Previously this path returned immediately.
             return _enrich(appmod, product, barcode)
-
         item = _lookup_catalog(barcode)
         if not item:
             return None
-        product = _make_catalog_product(appmod, item, barcode)
-        return _enrich(appmod, product, barcode)
+        return _enrich(appmod, _make_catalog_product(appmod, item, barcode), barcode)
 
     appmod.search_product = search_with_recovery
     return appmod.app
