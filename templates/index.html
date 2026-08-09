@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <meta charset="UTF-8">
-<meta name="google-site-verification" content="lW9TmJdCJGM4nj4Xo232l-5wrVlSQiJM7k0WAWM2DTw" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProductLens — Food Intelligence</title>
 
     <style>
@@ -657,164 +656,30 @@
             .full { grid-column: auto; }
         }
 
-        /* =====================================================
-           PRODUCTLENS FIRST UPDATE - MOBILE READABILITY
-           Existing interface preserved; these rules only improve
-           small-screen wrapping, spacing and readability.
-           ===================================================== */
-        .product-head h2,
-        .product-head .brand,
-        .pill,
-        .ingredient-item span,
-        .detective-item,
-        .detective-item p,
-        .detective-use,
-        .caution p,
-        .highlight span,
-        .category,
-        .tag {
-            overflow-wrap: anywhere;
-            word-break: normal;
-        }
-
-        .product-head h2 {
-            line-height: 1.18;
-        }
-
-        .health-insight-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .health-insight {
-            border: 1px solid var(--border);
-            border-radius: 13px;
-            padding: 13px;
-            background: #fbfcfe;
-        }
-
-        .health-insight strong {
-            display: block;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-
-        .health-insight p {
-            color: var(--muted);
-            font-size: 11px;
-            line-height: 1.55;
-        }
-
-        .health-insight.caution-note {
-            background: #fff8e8;
-            border-color: #f9df9e;
-        }
-
+        /* ProductLens stability fixes: preserve desktop design, prevent mobile overflow. */
+        html, body { max-width: 100%; overflow-x: hidden; }
+        .product-head > *, .grid > *, .card, .section, .container { min-width: 0; }
+        .product-head h2, .brand, .pill, .highlight span, .detective-item, .caution, .category, .empty { overflow-wrap: anywhere; word-break: break-word; }
+        .card { overflow: hidden; }
+        .ingredient-list { min-width: 0; }
+        .ingredient-item > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+        .detective-use { overflow-wrap: anywhere; }
+        .table-wrap, .comparison-wrap { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         @media(max-width: 550px) {
-            .hero h2 {
-                font-size: clamp(28px, 9vw, 38px);
-                letter-spacing: -1px;
-            }
-
-            .hero p {
-                font-size: 14px;
-            }
-
-            .search-title {
-                align-items: flex-start;
-            }
-
-            .search-title h3 {
-                font-size: 17px;
-            }
-
-            .product-head {
-                padding: 17px;
-                gap: 14px;
-            }
-
-            .product-head h2 {
-                font-size: 22px;
-                line-height: 1.2;
-                overflow-wrap: anywhere;
-            }
-
-            .product-head .brand {
-                font-size: 14px;
-            }
-
-            .meta {
-                gap: 6px;
-            }
-
-            .pill {
-                font-size: 11px;
-                max-width: 100%;
-            }
-
-            .card {
-                padding: 16px;
-            }
-
-            .section-heading h3 {
-                font-size: 19px;
-            }
-
-            .nutrient-top {
-                font-size: 14px;
-            }
-
-            .nutrient-value {
-                margin-left: 8px;
-                text-align: right;
-            }
-
-            .bar {
-                height: 9px;
-            }
-
-            .detective-item strong {
-                font-size: 14px;
-                display: block;
-                line-height: 1.35;
-            }
-
-            .detective-item p,
-            .detective-use {
-                font-size: 12px;
-                line-height: 1.5;
-            }
-
-            .ingredient-item {
-                font-size: 13px;
-            }
-
-            .category-title {
-                font-size: 13px;
-            }
-
-            .tag {
-                font-size: 11px;
-            }
-
-            .health-insight-grid {
-                grid-template-columns: 1fr;
-            }
-
-            #scannerModal {
-                padding: 12px;
-            }
-
-            .scanner-box {
-                padding: 14px;
-                max-height: 94vh;
-                overflow-y: auto;
-            }
-
-            #reader {
-                min-height: 230px;
-            }
+            .hero h2 { font-size: clamp(30px, 10vw, 40px); }
+            .search-row, .form-grid { width: 100%; }
+            .search-row .btn, .form-grid .btn { width: 100%; }
+            .product-head { padding: 16px; gap: 14px; }
+            .product-head h2 { font-size: 22px; line-height: 1.2; }
+            .product-image, .product-placeholder { width: min(170px, 70vw); height: min(170px, 70vw); }
+            .meta { width: 100%; }
+            .pill { max-width: 100%; }
+            .card { padding: 16px; }
+            .card-title { align-items: flex-start; }
+            .highlight-grid, .category-grid { gap: 9px; }
+            .highlight { min-width: 0; }
+            .comparison-table { min-width: 620px; }
+            .scanner-box { max-height: 92vh; overflow-y: auto; }
         }
     </style>
 </head>
@@ -845,7 +710,7 @@
     {% endif %}
 
     {% if manual_success %}
-        <div class="alert alert-success">✅ Manual product analysis completed successfully.</div>
+        <div class="alert alert-success">✅ Manual product analysis completed successfully.{% if manual_saved %} This barcode was saved to the ProductLens database for future scans.{% endif %}</div>
     {% endif %}
 
     <section class="search-card">
@@ -876,9 +741,10 @@
                 <strong>⚖️ Compare Products</strong>
                 <small>Compare nutrition values from two barcodes.</small>
             </div>
-            <div class="action-card" onclick="document.getElementById('barcodeInput').focus()">
+            <div class="action-card quick-search-card" onclick="quickSearch()" role="button" tabindex="0" onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); quickSearch(); }">
                 <strong>🔎 Quick Search</strong>
-                <small>Search Open Food Facts and USDA databases.</small>
+                <small>Enter a barcode above and instantly analyze it.</small>
+                <span class="quick-search-hint">Click to search →</span>
             </div>
         </div>
 
@@ -1039,7 +905,7 @@
         <div class="section-heading">
             <div>
                 <h3>📊 Nutrition Snapshot</h3>
-                <p>Values are shown per 100 g unless the source states otherwise.</p>
+                <p>Values are shown per 100 g. The bar shows the relative level against the visual reference scale.</p>
             </div>
         </div>
 
@@ -1058,7 +924,7 @@
                     <div>
                         <div class="nutrient-top">
                             <span>🔥 Energy</span>
-                            <span class="nutrient-value">{{ "%.1f"|format(product.energy) }} kcal</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.energy) }} kcal / 100 g</span>
                         </div>
                         <div class="bar">
                             <div class="fill {{ product.energy_bar.class }}" style="width:{{ product.energy_bar.percent }}%"></div>
@@ -1068,7 +934,7 @@
                     <div>
                         <div class="nutrient-top">
                             <span>🍬 Sugar</span>
-                            <span class="nutrient-value">{{ "%.1f"|format(product.sugar) }} g</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.sugar) }} g / 100 g</span>
                         </div>
                         <div class="bar">
                             <div class="fill {{ product.sugar_bar.class }}" style="width:{{ product.sugar_bar.percent }}%"></div>
@@ -1078,7 +944,7 @@
                     <div>
                         <div class="nutrient-top">
                             <span>🛢️ Fat</span>
-                            <span class="nutrient-value">{{ "%.1f"|format(product.fat) }} g</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.fat) }} g / 100 g</span>
                         </div>
                         <div class="bar">
                             <div class="fill {{ product.fat_bar.class }}" style="width:{{ product.fat_bar.percent }}%"></div>
@@ -1088,7 +954,7 @@
                     <div>
                         <div class="nutrient-top">
                             <span>💪 Protein</span>
-                            <span class="nutrient-value">{{ "%.1f"|format(product.protein) }} g</span>
+                            <span class="nutrient-value">{{ "%.1f"|format(product.protein) }} g / 100 g</span>
                         </div>
                         <div class="bar">
                             <div class="fill {{ product.protein_bar.class }}" style="width:{{ product.protein_bar.percent }}%"></div>
@@ -1098,7 +964,7 @@
                     <div>
                         <div class="nutrient-top">
                             <span>🧂 Salt</span>
-                            <span class="nutrient-value">{{ "%.2f"|format(product.salt) }} g</span>
+                            <span class="nutrient-value">{{ "%.2f"|format(product.salt) }} g / 100 g</span>
                         </div>
                         <div class="bar">
                             <div class="fill {{ product.salt_bar.class }}" style="width:{{ product.salt_bar.percent }}%"></div>
@@ -1153,237 +1019,24 @@
                     <div class="emoji">🔬</div>
                     <div style="flex:1;">
                         <h4>Ingredient Detective</h4>
-                        <p>Every listed ingredient is analysed for its likely food role and purpose.</p>
+                        <p>What each listed ingredient is, its likely role and why it is used — without guessing.</p>
                     </div>
-                    {% if product.ingredient_order %}
-                        <span class="detective-count">{{ product.ingredient_order|length }} ingredients</span>
-                    {% endif %}
+                    {% if product.ingredient_details %}<span class="detective-count">{{ product.ingredient_details|length }} ingredients</span>{% endif %}
                 </div>
 
-                {% if product.ingredient_order %}
-                    {% for ingredient in product.ingredient_order %}
-                        {% set ing = ingredient|lower|trim %}
+                {% if product.ingredient_details %}
+                    {% for item in product.ingredient_details %}
                         <div class="detective-item">
-                            <strong>{{ ingredient }}</strong>
-
-                            {% if 'sugar' in ing %}
-                                <span class="detective-role">Sweetener</span>
-                                <p>A sweetening ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds sweetness and contributes to the product's carbohydrate content.</div>
-                            {% elif 'glucose' in ing %}
-                                <span class="detective-role">Sugar / Sweetener</span>
-                                <p>A simple sugar commonly used in food formulations.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Sweetness, carbohydrate content and sometimes texture.</div>
-                            {% elif 'dextrose' in ing %}
-                                <span class="detective-role">Sugar / Sweetener</span>
-                                <p>A form of glucose.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Sweetness and carbohydrate contribution.</div>
-                            {% elif 'fructose' in ing %}
-                                <span class="detective-role">Sugar / Sweetener</span>
-                                <p>A naturally occurring simple sugar.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides sweetness.</div>
-                            {% elif 'syrup' in ing %}
-                                <span class="detective-role">Sweetener</span>
-                                <p>A concentrated sweetening ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds sweetness, moisture and texture.</div>
-                            {% elif 'wheat' in ing or 'maida' in ing or 'atta' in ing or 'flour' in ing or 'semolina' in ing or 'sooji' in ing or 'suji' in ing or 'rava' in ing %}
-                                <span class="detective-role">Cereal / Grain</span>
-                                <p>A cereal-based ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides bulk, carbohydrates and structure to the food.</div>
-                            {% elif 'rice' in ing %}
-                                <span class="detective-role">Cereal / Grain</span>
-                                <p>A cereal grain and carbohydrate source.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides bulk, texture and carbohydrates.</div>
-                            {% elif 'corn' in ing or 'maize' in ing %}
-                                <span class="detective-role">Cereal / Grain</span>
-                                <p>A cereal grain used in many food formulations.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides carbohydrates, bulk or texture depending on the form.</div>
-                            {% elif 'barley' in ing %}
-                                <span class="detective-role">Cereal / Grain</span>
-                                <p>A cereal grain.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides carbohydrates, flavour and texture.</div>
-                            {% elif 'milk powder' in ing %}
-                                <span class="detective-role">Dairy</span>
-                                <p>Dried milk solids.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds dairy flavour, milk solids and protein.</div>
-                            {% elif 'milk' in ing or 'cream' in ing or 'curd' in ing or 'cheese' in ing or 'butter' in ing or 'ghee' in ing %}
-                                <span class="detective-role">Dairy</span>
-                                <p>A milk-derived ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, fat, protein or creamy texture depending on the ingredient.</div>
-                            {% elif 'whey' in ing %}
-                                <span class="detective-role">Milk Protein / Dairy</span>
-                                <p>A milk-derived ingredient containing proteins and other milk components.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds dairy solids and protein and can improve texture.</div>
-                            {% elif 'casein' in ing or 'caseinate' in ing %}
-                                <span class="detective-role">Milk Protein</span>
-                                <p>A milk-derived protein.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides protein and functional properties such as texture and stability.</div>
-                            {% elif 'lactose' in ing %}
-                                <span class="detective-role">Milk Sugar</span>
-                                <p>The naturally occurring sugar in milk.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides carbohydrate and dairy solids.</div>
-                            {% elif 'peanut' in ing or 'groundnut' in ing %}
-                                <span class="detective-role">Peanut</span>
-                                <p>A legume commonly used as a food ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides flavour, protein and fat and contributes to texture.</div>
-                            {% elif 'almond' in ing or 'cashew' in ing or 'walnut' in ing or 'pistachio' in ing or 'hazelnut' in ing or 'pecan' in ing or 'macadamia' in ing or 'nut' in ing %}
-                                <span class="detective-role">Tree Nut</span>
-                                <p>A nut ingredient used for flavour and texture.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, fats, protein and texture.</div>
-                            {% elif 'soy lecithin' in ing or 'soya lecithin' in ing %}
-                                <span class="detective-role">Emulsifier</span>
-                                <p>A soy-derived emulsifier.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps oil and water-based ingredients stay evenly mixed.</div>
-                            {% elif 'soy' in ing or 'soya' in ing or 'soybean' in ing %}
-                                <span class="detective-role">Soy Ingredient</span>
-                                <p>An ingredient derived from soybeans.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Can provide protein, flavour, texture or functional properties.</div>
-                            {% elif 'sesame' in ing or 'til' in ing %}
-                                <span class="detective-role">Seed</span>
-                                <p>A sesame seed ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, texture and plant-based fats.</div>
-                            {% elif 'mustard' in ing %}
-                                <span class="detective-role">Spice / Seed</span>
-                                <p>A mustard-derived ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides characteristic flavour and seasoning.</div>
-                            {% elif 'egg' in ing or 'albumin' in ing %}
-                                <span class="detective-role">Egg</span>
-                                <p>An egg-derived ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Can provide protein, structure, binding or texture.</div>
-                            {% elif 'salt' in ing or 'sodium chloride' in ing %}
-                                <span class="detective-role">Salt / Mineral</span>
-                                <p>A seasoning ingredient containing sodium.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds flavour and can contribute to preservation and texture.</div>
-                            {% elif 'citric acid' in ing %}
-                                <span class="detective-role">Acidity Regulator</span>
-                                <p>An organic acid used in food products.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Controls acidity and provides a sour taste.</div>
-                            {% elif 'acidity regulator' in ing or 'acid regulator' in ing %}
-                                <span class="detective-role">Acidity Regulator</span>
-                                <p>A food additive used to control acidity.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps maintain the desired pH and flavour profile.</div>
-                            {% elif 'vegetable oil' in ing or 'palm oil' in ing or 'sunflower oil' in ing or 'coconut oil' in ing or 'oil' in ing %}
-                                <span class="detective-role">Oil / Fat</span>
-                                <p>A fat-containing ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides fat, texture, mouthfeel and sometimes flavour.</div>
-                            {% elif 'butter' in ing %}
-                                <span class="detective-role">Dairy Fat</span>
-                                <p>A dairy fat ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, richness and texture.</div>
-                            {% elif 'lecithin' in ing %}
-                                <span class="detective-role">Emulsifier</span>
-                                <p>An emulsifying ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps ingredients such as oil and water remain mixed.</div>
-                            {% elif 'emulsifier' in ing %}
-                                <span class="detective-role">Food Additive</span>
-                                <p>An ingredient that helps maintain a uniform mixture.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps oil and water-based ingredients stay mixed.</div>
-                            {% elif 'preservative' in ing or 'sodium benzoate' in ing or 'potassium sorbate' in ing %}
-                                <span class="detective-role">Preservative</span>
-                                <p>A food additive used to slow spoilage.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps control microbial growth and extend shelf life.</div>
-                            {% elif 'xanthan gum' in ing or 'guar gum' in ing or 'thickener' in ing or 'stabilizer' in ing %}
-                                <span class="detective-role">Texture / Stabilizer</span>
-                                <p>A functional ingredient used to modify food texture.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Improves thickness, consistency or stability.</div>
-                            {% elif 'starch' in ing %}
-                                <span class="detective-role">Carbohydrate / Thickener</span>
-                                <p>A carbohydrate-based ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides bulk and can thicken or improve texture.</div>
-                            {% elif 'msg' in ing or 'monosodium glutamate' in ing %}
-                                <span class="detective-role">Flavour Enhancer</span>
-                                <p>A flavour-enhancing ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Enhances savoury or umami flavour.</div>
-                            {% elif 'natural' in ing and 'flavour' in ing %}
-                                <span class="detective-role">Natural Flavouring</span>
-                                <p>A flavouring substance described as natural by the ingredient list.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides or enhances flavour.</div>
-                            {% elif 'flavour' in ing or 'flavor' in ing %}
-                                <span class="detective-role">Flavouring</span>
-                                <p>A flavouring ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides or enhances the product's flavour.</div>
-                            {% elif 'colour' in ing or 'color' in ing %}
-                                <span class="detective-role">Food Colour</span>
-                                <p>A colouring ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides or restores the product's colour.</div>
-                            {% elif 'spice' in ing or 'pepper' in ing or 'chilli' in ing or 'turmeric' in ing or 'cumin' in ing or 'coriander' in ing %}
-                                <span class="detective-role">Spice / Herb</span>
-                                <p>A seasoning ingredient.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds flavour, aroma and characteristic taste.</div>
-                            {% elif 'maltodextrin' in ing %}
-                                <span class="detective-role">Carbohydrate / Texture Agent</span>
-                                <p>A carbohydrate made from starch and commonly used in processed foods.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds bulk, improves texture and can help carry or distribute flavours and other ingredients.</div>
-                            {% elif 'baking soda' in ing or 'sodium bicarbonate' in ing %}
-                                <span class="detective-role">Leavening Agent</span>
-                                <p>An alkaline food ingredient used in baking.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps dough or batter rise by producing carbon dioxide when it reacts with an acid.</div>
-                            {% elif 'baking powder' in ing %}
-                                <span class="detective-role">Leavening Agent</span>
-                                <p>A mixture that releases carbon dioxide when hydrated and heated.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps baked foods become lighter and more aerated.</div>
-                            {% elif 'pectin' in ing %}
-                                <span class="detective-role">Gelling / Thickening Agent</span>
-                                <p>A plant-derived polysaccharide found naturally in fruits.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Forms gels and helps provide thickness and texture, especially in jams and fruit products.</div>
-                            {% elif 'gelatin' in ing %}
-                                <span class="detective-role">Gelling Agent</span>
-                                <p>A protein-based ingredient made from collagen.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Forms gels and provides structure, texture and stability.</div>
-                            {% elif 'cocoa' in ing or 'cacao' in ing %}
-                                <span class="detective-role">Cocoa Ingredient</span>
-                                <p>A cocoa-derived ingredient used in chocolate-flavoured foods.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Provides chocolate flavour, colour and characteristic cocoa solids.</div>
-                            {% elif 'vanilla' in ing %}
-                                <span class="detective-role">Flavouring</span>
-                                <p>A flavouring ingredient derived from vanilla or containing vanilla flavour compounds.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds vanilla aroma and flavour.</div>
-                            {% elif 'yeast' in ing %}
-                                <span class="detective-role">Leavening / Fermentation Agent</span>
-                                <p>A microorganism used in fermented food production and baking.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Produces carbon dioxide and fermentation products that help dough rise and develop flavour.</div>
-                            {% elif 'ascorbic acid' in ing or 'vitamin c' in ing %}
-                                <span class="detective-role">Antioxidant / Flour Treatment Agent</span>
-                                <p>Ascorbic acid, also known as vitamin C.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps protect food from oxidation and can improve dough handling and strength.</div>
-                            {% elif 'tocopherol' in ing or 'vitamin e' in ing %}
-                                <span class="detective-role">Antioxidant</span>
-                                <p>A vitamin E-related antioxidant compound.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps slow oxidation of fats and oils and supports product stability.</div>
-                            {% elif 'calcium carbonate' in ing %}
-                                <span class="detective-role">Mineral / Food Additive</span>
-                                <p>A calcium-containing mineral compound.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Can provide calcium, regulate acidity or act as a processing ingredient depending on the formulation.</div>
-                            {% elif 'potassium chloride' in ing %}
-                                <span class="detective-role">Mineral / Salt Substitute</span>
-                                <p>A potassium salt used in food formulations.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Can provide a salty taste and may be used to partially replace sodium chloride.</div>
-                            {% elif 'carrageenan' in ing %}
-                                <span class="detective-role">Thickener / Stabilizer</span>
-                                <p>A polysaccharide obtained from certain red seaweeds.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Helps thicken, stabilize or improve the texture of food products.</div>
-                            {% elif 'cellulose' in ing or 'microcrystalline cellulose' in ing %}
-                                <span class="detective-role">Bulking / Texture Agent</span>
-                                <p>A plant-derived carbohydrate polymer.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Adds bulk, improves texture and helps maintain the physical structure of a formulation.</div>
-                            {% elif 'enzyme' in ing %}
-                                <span class="detective-role">Processing Aid / Enzyme</span>
-                                <p>A protein that catalyses a specific biochemical reaction.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Supports specific processing reactions such as dough modification, ripening or texture development.</div>
-                            {% elif 'extract' in ing %}
-                                <span class="detective-role">Plant / Food Extract</span>
-                                <p>An ingredient obtained by extracting compounds from a source material.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Can contribute flavour, colour or other functional properties depending on the source.</div>
-                            {% else %}
-                                <span class="detective-role">Ingredient — details not in built-in guide</span>
-                                <p>This ingredient was found in the product's actual ingredient list, but ProductLens does not have a reliable built-in explanation for this exact term yet.</p>
-                                <div class="detective-use"><strong>Used for:</strong> Check the ingredient's specific name and form on the package before assigning a function.</div>
-                                <a class="ingredient-search" target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?q={{ ingredient|urlencode }}+food+ingredient+function">🔎 Research this ingredient online</a>
-                            {% endif %}
+                            <strong>{{ item.ingredient }}</strong>
+                            <span class="detective-role">{{ item.role }}</span>
+                            {% if item.code %}<span class="detective-role">{{ item.code }}</span>{% endif %}
+                            <p>{{ item.description }}</p>
+                            <div class="detective-use"><strong>Why it is used:</strong> {{ item.purpose }}</div>
+                            <small style="display:block;margin-top:7px;color:#667085;font-size:10px;">Evidence: {{ item.confidence }} · {{ item.source }}</small>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="empty">No ingredient list is available for detective analysis.</div>
+                    <div class="empty">No ingredient list is available for detailed analysis.</div>
                 {% endif %}
             </div>
 
@@ -1459,71 +1112,30 @@
                 {% endif %}
             </div>
 
-        </div>
-    </section>
-
-
-
-
-    <!-- INGREDIENT HEALTH INSIGHTS -->
-    <section class="section">
-        <div class="section-heading">
-            <div>
-                <h3>💡 Ingredient Health Insights</h3>
-                <p>Contextual notes about ingredients that may deserve attention.</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="health-insight-grid">
-                {% set ingredient_text = (product.ingredients or '')|lower %}
-
-                {% if 'palm oil' in ingredient_text or 'palm fat' in ingredient_text %}
-                    <div class="health-insight caution-note">
-                        <strong>🌴 Palm Oil Detected</strong>
-                        <p>Palm oil is a vegetable oil that can contain a relatively high proportion of saturated fat. The overall amount of fat and the rest of the diet matter when considering its health impact.</p>
+            <!-- REGULATORY / ADDITIVE INTELLIGENCE -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="emoji">🏛️</div>
+                    <div>
+                        <h4>Food Additive Intelligence</h4>
+                        <p>Regulatory-reference information for recognised additive codes.</p>
                     </div>
-                {% endif %}
-
-                {% if 'hydrogenated' in ingredient_text or 'partially hydrogenated' in ingredient_text %}
-                    <div class="health-insight caution-note">
-                        <strong>⚠️ Hydrogenated Fat Ingredient</strong>
-                        <p>A hydrogenated or partially hydrogenated fat is present in the ingredient information. Checking the nutrition label and the exact fat type is useful when evaluating the product.</p>
-                    </div>
-                {% endif %}
-
-                {% if 'sugar' in ingredient_text or 'glucose syrup' in ingredient_text or 'fructose' in ingredient_text or 'dextrose' in ingredient_text or 'sucrose' in ingredient_text %}
-                    <div class="health-insight">
-                        <strong>🍬 Added Sweetening Ingredients</strong>
-                        <p>One or more sweetening ingredients appear in the ingredient list. The nutrition section above shows the product's total sugar value per 100 g.</p>
-                    </div>
-                {% endif %}
-
-                {% if 'maltodextrin' in ingredient_text %}
-                    <div class="health-insight">
-                        <strong>🧪 Maltodextrin Detected</strong>
-                        <p>Maltodextrin is a starch-derived carbohydrate ingredient commonly used for bulk, texture or to carry other ingredients. The product's total carbohydrate and sugar values give additional context.</p>
-                    </div>
-                {% endif %}
-
-                {% if 'sodium benzoate' in ingredient_text or 'potassium sorbate' in ingredient_text or 'preservative' in ingredient_text %}
-                    <div class="health-insight">
-                        <strong>🧪 Preservative Detected</strong>
-                        <p>A preservative or named preservative ingredient appears in the list. Its presence alone does not mean the product is unsafe; ProductLens shows it so you know why it is included.</p>
-                    </div>
-                {% endif %}
-
-                {% if 'msg' in ingredient_text or 'monosodium glutamate' in ingredient_text %}
-                    <div class="health-insight">
-                        <strong>✨ MSG Detected</strong>
-                        <p>Monosodium glutamate is used as a flavour enhancer. The nutrition section should be considered alongside the ingredient list when evaluating the overall product.</p>
-                    </div>
-                {% endif %}
-
-                {% if not ('palm oil' in ingredient_text or 'palm fat' in ingredient_text or 'hydrogenated' in ingredient_text or 'partially hydrogenated' in ingredient_text or 'sugar' in ingredient_text or 'glucose syrup' in ingredient_text or 'fructose' in ingredient_text or 'dextrose' in ingredient_text or 'sucrose' in ingredient_text or 'maltodextrin' in ingredient_text or 'sodium benzoate' in ingredient_text or 'potassium sorbate' in ingredient_text or 'preservative' in ingredient_text or 'msg' in ingredient_text or 'monosodium glutamate' in ingredient_text) %}
-                    <div class="empty">🔎 No additional ingredient-specific insight was triggered by the current built-in guide.</div>
+                </div>
+                {% if product.regulatory_insights %}
+                    {% for item in product.regulatory_insights %}
+                        <div class="detective-item" style="border-left-color:#7c3aed;">
+                            <strong>{{ item.code }} · {{ item.name }}</strong>
+                            <span class="detective-role">{{ item.role }}</span>
+                            <div class="detective-use"><strong>Function:</strong> {{ item.purpose }}</div>
+                            <small style="display:block;margin-top:7px;color:#667085;font-size:10px;">Reference: {{ item.source }}</small>
+                        </div>
+                    {% endfor %}
+                    <a class="ingredient-search" target="_blank" rel="noopener noreferrer" href="https://www.fssai.gov.in/cms/Compendium-FSS-FPS-FA.php">🏛️ View current FSSAI food standards & additives reference</a>
+                {% else %}
+                    <div class="empty">No recognised additive code was detected in the available ingredient text. This does not mean the product is free from additives; it means no supported code was identified.</div>
                 {% endif %}
             </div>
+
         </div>
     </section>
 
@@ -1565,7 +1177,7 @@
         </div>
 
         <div class="card">
-            <div style="overflow-x:auto;">
+            <div class="table-wrap">
                 <table style="width:100%;border-collapse:collapse;font-size:12px;">
                     <thead>
                         <tr>
@@ -1635,6 +1247,24 @@
         }
     }
 
+    function quickSearch() {
+        const input = document.getElementById("barcodeInput");
+        const form = document.querySelector('form[action="/search"]');
+
+        if (!input || !form) return;
+
+        const barcode = input.value.trim();
+
+        if (!barcode) {
+            input.focus();
+            input.scrollIntoView({behavior: "smooth", block: "center"});
+            input.placeholder = "Enter a barcode first, e.g. 8901234567890";
+            return;
+        }
+
+        form.submit();
+    }
+
     let scanner = null;
 
     function openScanner() {
@@ -1650,7 +1280,7 @@
 
     function loadScannerLibrary() {
         const script = document.createElement("script");
-        script.src = "https://unpkg.com/html5-qrcode";
+        script.src = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
         script.onload = startScanner;
         script.onerror = function() {
             alert("Barcode scanner library could not load. You can enter the barcode manually.");
