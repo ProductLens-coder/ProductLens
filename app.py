@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request
 import requests
 import re
+import os
+import json
 
 app = Flask(__name__)
 
@@ -14,7 +16,12 @@ USDA_API = "https://api.nal.usda.gov/fdc/v1/foods/search"
 
 # DEMO_KEY has limited usage.
 # Replace with your own USDA API key later if needed.
-USDA_API_KEY = "DEMO_KEY"
+USDA_API_KEY = os.getenv("USDA_API_KEY", "DEMO_KEY")
+
+# Optional AI fallback. ProductLens remains fully functional without a key.
+AI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+AI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
+AI_API_URL = os.getenv("OPENAI_API_URL", "https://api.openai.com/v1/chat/completions")
 
 HEADERS = {
     "User-Agent": "ProductLens/1.0 (student project)"
@@ -90,6 +97,8 @@ ALLERGEN_GUIDE = {
         "pecans",
         "macadamia",
         "macadamia nuts",
+        "nuts",
+        "nut",
         "en:nuts",
         "en:tree-nuts",
         "en:almond",
@@ -289,6 +298,121 @@ def detect_allergens(*texts):
 
 
 # =========================================================
+# ALLERGEN SOURCE-AWARE DETECTION
+# =========================================================
+
+def detect_allergen_details(ingredients="", declared_allergens="", allergen_tags=""):
+    """Return detected allergens plus whether they were explicitly declared."""
+    declared_text = " ".join(
+        str(value) for value in [declared_allergens, allergen_tags]
+        if value
+    )
+    ingredient_text = str(ingredients or "")
+
+    declared = detect_allergens(declared_text)
+    inferred = detect_allergens(ingredient_text)
+
+    ordered = []
+    seen = set()
+    declared_names = {item["name"] for item in declared}
+
+    for item in declared + inferred:
+        name = item["name"]
+        if name in seen:
+            continue
+        seen.add(name)
+        copy = dict(item)
+        copy["source"] = "Declared allergen information" if name in declared_names else "Ingredient information"
+        copy["declared"] = name in declared_names
+        ordered.append(copy)
+
+    return ordered
+
+
+def allergen_data_status(ingredients="", declared_allergens="", allergen_tags=""):
+    declared_text = " ".join(
+        str(value) for value in [declared_allergens, allergen_tags]
+        if value
+    ).strip()
+    if declared_text and detect_allergens(declared_text):
+        return "declared"
+    if ingredients and detect_allergens(ingredients):
+        return "ingredient_detected"
+    if declared_text or ingredients:
+        return "checked_none"
+    return "unavailable"
+
+
+def ai_fill_missing_intelligence(product):
+    """Optional AI fallback: interpret only evidence already present in the product record."""
+    base = {
+        "allergens": [],
+        "additives": [],
+        "attention_items": [],
+        "summary_points": []
+    }
+
+    if not AI_API_KEY:
+        return base
+
+    evidence = {
+        "name": product.get("name", ""),
+        "brand": product.get("brands", ""),
+        "ingredients": product.get("ingredients", ""),
+        "declared_allergens": product.get("allergens", ""),
+        "allergen_tags": product.get("allergen_tags", ""),
+        "nutrition_per_100g": {
+            "energy_kcal": product.get("energy", 0),
+            "sugar_g": product.get("sugar", 0),
+            "fat_g": product.get("fat", 0),
+            "protein_g": product.get("protein", 0),
+            "salt_g": product.get("salt", 0),
+        }
+    }
+
+    prompt = (
+        "You are the ProductLens backend intelligence layer. Use ONLY the supplied product evidence. "
+        "Do not invent ingredients, allergens, additives, health effects, or adulteration claims. "
+        "If evidence is missing, return an empty list. Normalize allergen synonyms such as soya/soy, "
+        "nuts/tree nuts, wheat/gluten, and milk/dairy. Treat ordinary food ingredients as concerns only "
+        "when there is a clear reason in the evidence. Never call an ingredient adulteration merely because "
+        "it is processed. Return JSON with exactly these keys: allergens, additives, attention_items, summary_points. "
+        "Each list must contain short plain-language strings.\n\nEvidence:\n"
+        + json.dumps(evidence, ensure_ascii=False)
+    )
+
+    try:
+        response = requests.post(
+            AI_API_URL,
+            headers={
+                "Authorization": f"Bearer {AI_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": AI_MODEL,
+                "temperature": 0.1,
+                "messages": [
+                    {"role": "system", "content": "Return valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ]
+            },
+            timeout=20
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        parsed = json.loads(content)
+        if isinstance(parsed, dict):
+            for key in base:
+                if isinstance(parsed.get(key), list):
+                    base[key] = [str(x).strip() for x in parsed[key] if str(x).strip()]
+    except (requests.RequestException, ValueError, TypeError, KeyError, IndexError) as exc:
+        print("AI fallback unavailable:", exc)
+
+    return base
+
+
+# =========================================================
 # NUTRITION LEVEL
 # =========================================================
 
@@ -389,7 +513,7 @@ def progress_bar(value, nutrient):
     maximums = {
         "energy": 700,
         "sugar": 25,
-        "fat": 30,
+        "fat": 50,
         "protein": 20,
         "salt": 3
     }
@@ -670,154 +794,55 @@ def decode_ingredients(ingredients):
 # =========================================================
 
 def create_product_summary(product):
+    """Create a concise, confident, user-friendly product briefing."""
+    points = []
 
-    name = product.get(
-        "name",
-        "This product"
-    )
-
-    ingredients = str(
-        product.get("ingredients", "")
-    ).lower()
-
-    sugar = safe_number(
-        product.get("sugar")
-    )
-
-    fat = safe_number(
-        product.get("fat")
-    )
-
-    protein = safe_number(
-        product.get("protein")
-    )
-
-    salt = safe_number(
-        product.get("salt")
-    )
-
-    allergens = product.get(
-        "detected_allergens",
-        []
-    )
-
-    observations = []
-
-    # Product type clues
-    if any(
-        word in ingredients
-        for word in [
-            "cocoa",
-            "chocolate"
-        ]
-    ):
-        observations.append(
-            "a cocoa/chocolate-based product"
-        )
-
-    elif any(
-        word in ingredients
-        for word in [
-            "wheat",
-            "flour",
-            "maida",
-            "atta"
-        ]
-    ):
-        observations.append(
-            "a wheat-based product"
-        )
-
-    elif any(
-        word in ingredients
-        for word in [
-            "milk",
-            "whey",
-            "casein",
-            "butter",
-            "cream"
-        ]
-    ):
-        observations.append(
-            "a dairy-containing product"
-        )
-
-    else:
-        observations.append(
-            "a packaged food product"
-        )
-
-    # Nutrition observations
-    nutrition_points = []
-
-    if sugar > 15:
-        nutrition_points.append(
-            "relatively high in sugar"
-        )
-    elif sugar <= 5 and sugar > 0:
-        nutrition_points.append(
-            "relatively low in sugar"
-        )
-
-    if fat > 17.5:
-        nutrition_points.append(
-            "relatively high in total fat"
-        )
-
-    if protein >= 10:
-        nutrition_points.append(
-            "provides a relatively high amount of protein"
-        )
-
-    if salt > 1.5:
-        nutrition_points.append(
-            "relatively high in salt"
-        )
-
-    if nutrition_points:
-
-        nutrition_sentence = (
-            " Nutritionally, it is "
-            + ", ".join(nutrition_points)
-            + "."
-        )
-
-    else:
-
-        nutrition_sentence = (
-            " The available nutrition data does not show a major "
-            "high-level concern under the ProductLens screening rules."
-        )
-
+    allergens = product.get("detected_allergens", []) or []
     if allergens:
+        names = ", ".join(item["name"].replace(" / Gluten", "") for item in allergens)
+        points.append({"icon": "🚨", "title": "Allergens Detected", "text": names})
 
-        allergen_names = ", ".join(
-            item["name"]
-            for item in allergens
-        )
+    ingredients = str(product.get("ingredients", "") or "").lower()
+    additive_terms = [
+        ("preservative", "Preservative listed"),
+        ("flavouring", "Flavouring listed"),
+        ("flavoring", "Flavouring listed"),
+        ("flavour", "Flavouring listed"),
+        ("flavor", "Flavouring listed"),
+        ("emulsifier", "Emulsifier listed"),
+        ("stabilizer", "Stabilizer listed"),
+        ("thickener", "Thickener listed"),
+        ("colour", "Food colour listed"),
+        ("color", "Food colour listed"),
+        ("raising agent", "Raising agent listed"),
+    ]
+    additives = []
+    for term, label in additive_terms:
+        if term in ingredients and label not in additives:
+            additives.append(label)
+    if additives:
+        points.append({"icon": "🧪", "title": "Additives Detected", "text": ", ".join(additives[:4])})
 
-        allergen_sentence = (
-            f" ProductLens detected potential "
-            f"allergen sources including {allergen_names}, "
-            f"so the package allergen declaration should be checked carefully."
-        )
+    if any(term in ingredients for term in ["hydrogenated", "partially hydrogenated"]):
+        points.append({"icon": "⚠️", "title": "Hydrogenated Fat Detected", "text": "Hydrogenated fat wording is present in the ingredient list."})
 
-    else:
+    if any(term in ingredients for term in ["refined palmolein", "refined palm oil", "palmolein oil"]):
+        points.append({"icon": "🛢️", "title": "Refined Oil Detected", "text": "Refined palm-derived oil is listed."})
 
-        allergen_sentence = (
-            " No major allergen from the ProductLens detection list "
-            "was identified in the available ingredient information."
-        )
+    fat = safe_number(product.get("fat"))
+    sugar = safe_number(product.get("sugar"))
+    salt = safe_number(product.get("salt"))
+    if fat > 17.5:
+        points.append({"icon": "🔴", "title": "High Fat", "text": f"{fat:.1f} g per 100 g"})
+    if sugar > 15:
+        points.append({"icon": "🍬", "title": "High Sugar", "text": f"{sugar:.1f} g per 100 g"})
+    if salt > 1.5:
+        points.append({"icon": "🧂", "title": "High Salt", "text": f"{salt:.2f} g per 100 g"})
 
-    summary = (
-        f"{name} appears to be "
-        + observations[0]
-        + "."
-        + nutrition_sentence
-        + allergen_sentence
-    )
+    if not points:
+        points.append({"icon": "✅", "title": "No Major Flags", "text": "No major ProductLens flags were identified from the available data."})
 
-    return summary
+    return points[:6]
 
 
 # =========================================================
@@ -1568,14 +1593,34 @@ def finalize_product(product):
         ""
     ) or ""
 
-    product["detected_allergens"] = detect_allergens(
-
+    product["detected_allergens"] = detect_allergen_details(
         ingredients,
-
         declared_allergens,
-
         allergen_tags
+    )
 
+    product["allergen_status"] = allergen_data_status(
+        ingredients,
+        declared_allergens,
+        allergen_tags
+    )
+
+    product["ai_intelligence"] = ai_fill_missing_intelligence(product)
+
+    # AI is a fallback, never a source of invented facts. Add only evidence-backed missing items.
+    if not product["detected_allergens"] and product["ai_intelligence"].get("allergens"):
+        for name in product["ai_intelligence"]["allergens"]:
+            product["detected_allergens"].append({
+                "name": name,
+                "icon": ALLERGEN_ICONS.get(name, "🚨"),
+                "keyword": "AI evidence",
+                "source": "AI evidence from available product data",
+                "declared": False
+            })
+
+    product["allergen_status"] = (
+        "ai_detected" if product["ai_intelligence"].get("allergens") and not declared_allergens
+        else product["allergen_status"]
     )
 
     product["ingredient_order"] = get_ingredient_order(
@@ -1652,10 +1697,10 @@ def finalize_product(product):
 def extract_off_ingredients(raw):
 
     candidates = [
-        raw.get("ingredients_text"),
-        raw.get("ingredients_text_en"),
         raw.get("ingredients_text_with_allergens"),
-        raw.get("ingredients_text_with_allergens_en")
+        raw.get("ingredients_text_with_allergens_en"),
+        raw.get("ingredients_text"),
+        raw.get("ingredients_text_en")
     ]
 
     for value in candidates:
@@ -1771,10 +1816,14 @@ def get_from_open_food_facts(barcode):
 
         ingredients = extract_off_ingredients(raw)
 
-        declared_allergens = raw.get(
-            "allergens",
-            ""
-        ) or ""
+        declared_allergens = " ".join(
+            str(value) for value in [
+                raw.get("allergens", ""),
+                raw.get("allergens_from_ingredients", ""),
+                raw.get("allergens_hierarchy", ""),
+                raw.get("traces", "")
+            ] if value
+        )
 
         allergen_tags = raw.get(
             "allergens_tags",

@@ -569,6 +569,18 @@
             background: #94a3b8;
         }
 
+
+        .quick-summary {
+            border: 1px solid #dbe7f7;
+            background: linear-gradient(135deg, #f8fbff, #ffffff);
+        }
+        .summary-list { display: grid; gap: 10px; }
+        .summary-item { display: flex; gap: 11px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+        .summary-item .summary-icon { font-size: 19px; flex-shrink: 0; }
+        .summary-item strong { display: block; font-size: 12px; }
+        .summary-item span { display: block; color: var(--muted); font-size: 11px; }
+        .summary-source { margin-top: 11px; color: var(--muted); font-size: 10px; }
+
         /* =========================
            HIGHLIGHTS
         ========================== */
@@ -1902,6 +1914,31 @@
         </section>
 
 
+
+        <!-- SMART SUMMARY -->
+        <section class="section">
+            <div class="section-heading">
+                <div>
+                    <h3>🔎 Quick Summary</h3>
+                    <p>The most important things to know about this product.</p>
+                </div>
+            </div>
+            <div class="card quick-summary">
+                <div class="summary-list">
+                    {% for item in product.product_summary %}
+                        <div class="summary-item">
+                            <div class="summary-icon">{{ item.icon }}</div>
+                            <div>
+                                <strong>{{ item.title }}</strong>
+                                <span>{{ item.text }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="summary-source">Based on the available product, ingredient and nutrition data.</div>
+            </div>
+        </section>
+
         <!-- =========================
              NUTRITION
         ========================== -->
@@ -2138,8 +2175,11 @@
                                     </strong>
 
                                     <small>
-                                        Detected keyword:
-                                        {{ allergen.keyword }}
+                                        {% if allergen.declared %}
+                                            Declared allergen
+                                        {% else %}
+                                            Detected from ingredient information
+                                        {% endif %}
                                     </small>
 
                                 </div>
@@ -2152,11 +2192,11 @@
 
                         <div class="empty">
 
-                            ✅ No allergens detected from the available
-                            ingredient/allergen information.
-
-                            Always check the physical package label
-                            for allergy warnings.
+                            {% if product.allergen_status == "unavailable" %}
+                                ℹ️ Allergen information unavailable.
+                            {% else %}
+                                ✅ No allergens detected in the available product information.
+                            {% endif %}
 
                         </div>
 
