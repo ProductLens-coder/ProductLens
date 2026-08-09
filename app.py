@@ -111,7 +111,6 @@ ALLERGEN_GUIDE = {
         "soybeans",
         "soy protein",
         "soy lecithin",
-        "soya lecithin",
         "soy flour",
         "en:soy",
         "en:soybeans"
@@ -527,7 +526,7 @@ def get_ingredient_categories(ingredients):
 
 
 # =========================================================
-# INGREDIENT DETECTIVE
+# INGREDIENT INTELLIGENCE
 # =========================================================
 
 def decode_ingredients(ingredients):
@@ -541,422 +540,524 @@ def decode_ingredients(ingredients):
 
         "sugar": (
             "🍬 Sugar",
-            "A sweetening ingredient that contributes to the product's sugar content."
+            "Sweetener used to provide sweetness and contribute to the product's carbohydrate and sugar content.",
+            "Why it is used: Provides sweetness and can also contribute to texture and browning."
         ),
 
         "glucose": (
             "🍬 Glucose",
-            "A simple sugar used as a carbohydrate and sweetening ingredient."
+            "A simple sugar used as a carbohydrate and sweetening ingredient.",
+            "Why it is used: Adds sweetness and can contribute to texture and food processing."
         ),
 
         "dextrose": (
             "🍬 Dextrose",
-            "A form of glucose commonly used as a sweetener and carbohydrate source."
+            "A form of glucose commonly used as a sweetening and carbohydrate ingredient.",
+            "Why it is used: Provides sweetness and can support texture and browning."
         ),
 
         "fructose": (
             "🍯 Fructose",
-            "A naturally occurring simple sugar that provides sweetness."
+            "A simple sugar that provides sweetness.",
+            "Why it is used: Provides sweetness and can contribute to the overall sugar profile."
         ),
 
         "sucrose": (
             "🍬 Sucrose",
-            "Common table sugar composed of glucose and fructose."
+            "Common table sugar composed of glucose and fructose.",
+            "Why it is used: Primarily provides sweetness and can influence texture."
+        ),
+
+        "maltose": (
+            "🍬 Maltose",
+            "A sugar made from two glucose units.",
+            "Why it is used: Provides sweetness and can contribute to flavour and browning."
         ),
 
         "syrup": (
             "🍯 Syrup",
-            "A sweetening ingredient commonly used to add sweetness and texture."
+            "A concentrated sweetening ingredient.",
+            "Why it is used: Adds sweetness and can contribute to texture and moisture."
         ),
 
         "honey": (
             "🍯 Honey",
-            "A naturally derived sweetener produced by bees."
+            "A naturally derived sweetener produced by bees.",
+            "Why it is used: Provides sweetness, flavour and moisture."
         ),
 
         "salt": (
             "🧂 Salt",
-            "Used mainly for flavour and contributes sodium to the diet."
+            "A mineral ingredient mainly used for flavour.",
+            "Why it is used: Enhances flavour and contributes sodium to the product."
         ),
 
         "sodium": (
             "🧂 Sodium",
-            "A mineral that contributes to the sodium content of food."
+            "A mineral that contributes to the sodium content of food.",
+            "Why it is used: Can be present naturally or through sodium-containing ingredients and additives."
         ),
 
         "citric acid": (
             "🍋 Citric Acid",
-            "Used to control acidity and provide a sour taste."
+            "An organic acid commonly used as an acidity regulator.",
+            "Why it is used: Controls acidity, provides tartness and can support product stability."
         ),
 
         "acidity regulator": (
             "⚖️ Acidity Regulator",
-            "Used to control and maintain food acidity or pH."
+            "An ingredient used to control the acidity or pH of a food.",
+            "Why it is used: Helps maintain flavour, stability and processing characteristics."
         ),
 
         "vegetable oil": (
             "🛢️ Vegetable Oil",
-            "Plant-derived fat used for texture, cooking and flavour."
+            "Plant-derived oil used as a source of fat.",
+            "Why it is used: Provides texture, mouthfeel and helps with cooking or processing."
         ),
 
         "palm oil": (
             "🌴 Palm Oil",
-            "Vegetable oil commonly used for texture and stability."
+            "A vegetable oil derived from the fruit of oil palm trees.",
+            "Why it is used: Provides texture, stability and helps give products a suitable mouthfeel."
+        ),
+
+        "palm fat": (
+            "🌴 Palm Fat",
+            "A palm-derived fat used in food formulations.",
+            "Why it is used: Provides texture, structure and stability."
         ),
 
         "sunflower oil": (
             "🌻 Sunflower Oil",
-            "Plant-based oil used as a fat source and for texture."
+            "A plant-based oil obtained from sunflower seeds.",
+            "Why it is used: Provides fat and contributes to texture and cooking properties."
         ),
 
         "coconut oil": (
             "🥥 Coconut Oil",
-            "Plant-based fat used for texture and flavour."
+            "A plant-derived oil from coconut.",
+            "Why it is used: Provides fat, texture and characteristic flavour."
         ),
 
         "olive oil": (
             "🫒 Olive Oil",
-            "Plant-derived oil commonly used as a source of dietary fat."
+            "A plant-derived oil obtained from olives.",
+            "Why it is used: Provides dietary fat, flavour and texture."
+        ),
+
+        "canola oil": (
+            "🌱 Canola Oil",
+            "A plant-derived edible oil.",
+            "Why it is used: Provides fat and contributes to texture and cooking properties."
         ),
 
         "butter": (
             "🧈 Butter",
-            "Dairy fat used to provide flavour and texture."
+            "A dairy fat used in food products.",
+            "Why it is used: Provides flavour, richness and texture."
         ),
 
         "milk": (
             "🥛 Milk",
-            "A dairy ingredient that can provide protein and flavour."
+            "A dairy ingredient containing milk proteins and other milk components.",
+            "Why it is used: Provides flavour, nutrients and functional properties."
         ),
 
         "milk powder": (
             "🥛 Milk Powder",
-            "Used to provide dairy solids, protein and flavour."
+            "Dried milk containing concentrated milk solids.",
+            "Why it is used: Provides dairy solids, protein, flavour and texture."
         ),
 
         "whey": (
             "🥛 Whey",
-            "A milk-derived ingredient containing proteins and other milk components."
+            "A milk-derived ingredient containing proteins and other milk components.",
+            "Why it is used: Can provide protein and functional properties."
         ),
 
         "whey protein": (
             "🥛 Whey Protein",
-            "A protein ingredient derived from milk."
+            "A protein ingredient derived from milk.",
+            "Why it is used: Adds protein and can contribute functional properties."
         ),
 
         "casein": (
             "🥛 Casein",
-            "A milk protein used for nutritional and functional properties."
+            "A major protein naturally found in milk.",
+            "Why it is used: Provides protein and can contribute texture and stability."
         ),
 
         "lactose": (
             "🥛 Lactose",
-            "The naturally occurring sugar found in milk and dairy products."
+            "The naturally occurring sugar found in milk.",
+            "Why it is used: May be present as part of dairy ingredients and contributes sweetness and milk solids."
         ),
 
         "cream": (
             "🥛 Cream",
-            "A dairy ingredient containing milk fat and used for flavour and texture."
+            "A dairy ingredient containing milk fat.",
+            "Why it is used: Provides richness, flavour and creamy texture."
         ),
 
         "cheese": (
             "🧀 Cheese",
-            "A dairy product used for flavour, texture and protein."
+            "A dairy ingredient containing milk components.",
+            "Why it is used: Provides flavour, texture and protein."
         ),
 
         "curd": (
             "🥛 Curd",
-            "A fermented dairy ingredient containing milk components."
+            "A fermented dairy ingredient.",
+            "Why it is used: Provides dairy solids, flavour and texture."
         ),
 
         "ghee": (
             "🧈 Ghee",
-            "Clarified dairy fat used for flavour and cooking."
+            "Clarified dairy fat.",
+            "Why it is used: Provides fat, flavour and cooking properties."
         ),
 
         "lecithin": (
             "🔄 Lecithin",
-            "An emulsifier that helps ingredients such as oil and water remain mixed."
+            "An emulsifier that helps ingredients such as oil and water remain mixed.",
+            "Why it is used: Improves consistency and helps maintain a uniform product."
         ),
 
         "soy lecithin": (
             "🫘 Soy Lecithin",
-            "A soy-derived emulsifier used to help ingredients remain evenly mixed."
+            "A soy-derived emulsifier.",
+            "Why it is used: Helps ingredients remain evenly mixed and can improve texture."
         ),
 
         "emulsifier": (
             "🔄 Emulsifier",
-            "Helps ingredients such as oil and water remain mixed."
+            "An ingredient that helps normally difficult-to-mix ingredients remain combined.",
+            "Why it is used: Helps maintain consistency and texture."
         ),
 
         "sodium benzoate": (
             "🧪 Sodium Benzoate",
-            "A preservative used to help slow microbial spoilage."
+            "A preservative used in many food formulations.",
+            "Why it is used: Helps slow microbial spoilage and extend shelf stability."
         ),
 
         "potassium sorbate": (
             "🧪 Potassium Sorbate",
-            "A preservative used to help control mould and yeast growth."
+            "A preservative commonly used to control mould and yeast.",
+            "Why it is used: Helps protect the product from microbial spoilage."
         ),
 
         "preservative": (
             "🧪 Preservative",
-            "Used to help slow spoilage and extend shelf life."
+            "An ingredient used to slow deterioration caused by microorganisms or other processes.",
+            "Why it is used: Helps maintain product quality and extend shelf life."
         ),
 
         "xanthan gum": (
             "⚗️ Xanthan Gum",
-            "A thickener and stabilizer used to improve texture."
+            "A polysaccharide commonly used as a thickener and stabilizer.",
+            "Why it is used: Improves thickness, texture and stability."
         ),
 
         "guar gum": (
             "⚗️ Guar Gum",
-            "A thickening agent used to improve texture and consistency."
+            "A plant-derived thickening agent.",
+            "Why it is used: Improves thickness, consistency and texture."
         ),
 
         "starch": (
             "🌽 Starch",
-            "A carbohydrate commonly used for thickness and texture."
+            "A carbohydrate commonly used in food formulations.",
+            "Why it is used: Can provide thickness, structure and texture."
         ),
 
         "modified starch": (
             "🌽 Modified Starch",
-            "Used to improve thickness, texture and stability."
+            "Starch that has been processed to provide specific functional properties.",
+            "Why it is used: Helps control thickness, texture and stability."
         ),
 
         "stabilizer": (
             "⚗️ Stabilizer",
-            "Helps maintain the texture and consistency of the product."
+            "An ingredient used to help maintain the physical properties of a food.",
+            "Why it is used: Helps maintain texture, consistency and stability during storage."
         ),
 
         "thickener": (
             "🥣 Thickener",
-            "Used to increase thickness and improve texture."
+            "An ingredient used to increase the thickness of a food.",
+            "Why it is used: Improves consistency and mouthfeel."
         ),
 
         "msg": (
             "✨ MSG",
-            "A flavour enhancer used to increase savoury or umami taste."
+            "Monosodium glutamate, a flavour enhancer.",
+            "Why it is used: Enhances savoury or umami flavour."
         ),
 
         "monosodium glutamate": (
             "✨ Monosodium Glutamate",
-            "A flavour enhancer used to increase savoury or umami taste."
+            "A flavour-enhancing ingredient.",
+            "Why it is used: Enhances savoury or umami taste."
         ),
 
         "flavour": (
             "👃 Flavouring",
-            "Added to provide or enhance flavour."
+            "An ingredient or mixture used to provide or enhance flavour.",
+            "Why it is used: Gives the product its intended taste or aroma."
         ),
 
         "flavor": (
             "👃 Flavouring",
-            "Added to provide or enhance flavour."
+            "An ingredient or mixture used to provide or enhance flavour.",
+            "Why it is used: Gives the product its intended taste or aroma."
         ),
 
         "natural flavour": (
             "🌿 Natural Flavour",
-            "Used to provide or enhance flavour using flavouring substances from natural sources."
+            "A flavouring ingredient described as being derived from natural sources.",
+            "Why it is used: Provides or enhances the characteristic flavour of the product."
         ),
 
         "natural flavor": (
             "🌿 Natural Flavour",
-            "Used to provide or enhance flavour using flavouring substances from natural sources."
+            "A flavouring ingredient described as being derived from natural sources.",
+            "Why it is used: Provides or enhances the characteristic flavour of the product."
         ),
 
         "colour": (
             "🎨 Food Colour",
-            "Used to provide or restore colour."
+            "A colouring ingredient used to give or restore colour.",
+            "Why it is used: Improves or restores the visual appearance of the food."
         ),
 
         "color": (
             "🎨 Food Colour",
-            "Used to provide or restore colour."
+            "A colouring ingredient used to give or restore colour.",
+            "Why it is used: Improves or restores the visual appearance of the food."
         ),
 
         "wheat flour": (
             "🌾 Wheat Flour",
-            "Used to provide structure and bulk in food products."
+            "Flour made from wheat grains.",
+            "Why it is used: Provides structure, bulk and carbohydrates."
         ),
 
         "wheat": (
             "🌾 Wheat",
-            "A cereal grain commonly used as a carbohydrate source."
+            "A cereal grain commonly used as a carbohydrate source.",
+            "Why it is used: Provides structure, bulk and carbohydrates in many foods."
         ),
 
         "whole wheat": (
             "🌾 Whole Wheat",
-            "A whole-grain wheat ingredient containing the grain components."
+            "A wheat ingredient containing the grain's main components.",
+            "Why it is used: Provides grain structure, carbohydrates and dietary fibre."
         ),
 
         "semolina": (
             "🌾 Semolina",
-            "A coarse flour usually made from durum wheat."
+            "A coarse flour usually made from durum wheat.",
+            "Why it is used: Provides structure, texture and carbohydrates."
         ),
 
         "suji": (
             "🌾 Suji",
-            "A coarse wheat-based flour commonly used in Indian foods."
+            "A coarse wheat-based flour commonly used in Indian foods.",
+            "Why it is used: Provides bulk, structure and carbohydrates."
         ),
 
         "sooji": (
             "🌾 Sooji",
-            "A coarse wheat-based flour commonly used in Indian foods."
+            "A coarse wheat-based flour commonly used in Indian foods.",
+            "Why it is used: Provides bulk, structure and carbohydrates."
         ),
 
         "rava": (
             "🌾 Rava",
-            "A coarse wheat-based flour commonly used in Indian foods."
+            "A coarse wheat-based flour commonly used in Indian foods.",
+            "Why it is used: Provides bulk, structure and carbohydrates."
         ),
 
         "rice": (
             "🍚 Rice",
-            "A cereal grain and carbohydrate source."
+            "A cereal grain and carbohydrate source.",
+            "Why it is used: Provides bulk, texture and carbohydrates."
         ),
 
         "corn": (
             "🌽 Corn",
-            "A cereal grain used as a carbohydrate source."
+            "A cereal grain used as a carbohydrate source.",
+            "Why it is used: Provides carbohydrates, structure or texture depending on the formulation."
         ),
 
         "barley": (
             "🌾 Barley",
-            "A cereal grain containing carbohydrates and other nutrients."
+            "A cereal grain containing carbohydrates and dietary fibre.",
+            "Why it is used: Provides grain-based structure, flavour or nutrients."
         ),
 
         "oats": (
             "🌾 Oats",
-            "A cereal grain that provides carbohydrates and dietary fibre."
+            "A cereal grain that provides carbohydrates and dietary fibre.",
+            "Why it is used: Provides texture, bulk and grain nutrients."
         ),
 
         "almond": (
             "🥜 Almond",
-            "A tree nut commonly used for flavour, texture and nutrients."
+            "A tree nut commonly used for flavour and texture.",
+            "Why it is used: Provides characteristic flavour, texture, fat and protein."
         ),
 
         "cashew": (
             "🥜 Cashew",
-            "A tree nut used as a food ingredient and source of fat and protein."
+            "A tree nut used as a food ingredient.",
+            "Why it is used: Provides flavour, creamy texture, fat and protein."
         ),
 
         "walnut": (
             "🥜 Walnut",
-            "A tree nut containing fats, protein and other nutrients."
+            "A tree nut containing fat, protein and other nutrients.",
+            "Why it is used: Provides flavour and texture."
         ),
 
         "pistachio": (
             "🥜 Pistachio",
-            "A tree nut used for flavour and texture."
+            "A tree nut used as a food ingredient.",
+            "Why it is used: Provides flavour, colour and texture."
         ),
 
         "hazelnut": (
             "🥜 Hazelnut",
-            "A tree nut commonly used for flavour and texture."
+            "A tree nut commonly used for flavour and texture.",
+            "Why it is used: Provides characteristic nutty flavour and texture."
         ),
 
         "peanut": (
             "🥜 Peanut",
-            "A legume commonly used as a source of protein and fat."
+            "A legume commonly used as a source of protein and fat.",
+            "Why it is used: Provides flavour, protein, fat and texture."
         ),
 
         "groundnut": (
             "🥜 Groundnut",
-            "Another name for peanut, commonly used as a source of protein and fat."
+            "Another name for peanut.",
+            "Why it is used: Provides protein, fat, flavour and texture."
         ),
 
         "soy": (
             "🫘 Soy",
-            "A soybean-derived ingredient used as a protein or functional ingredient."
+            "A soybean-derived ingredient.",
+            "Why it is used: Can provide protein or functional properties such as emulsification."
         ),
 
         "soya": (
             "🫘 Soya",
-            "A soybean-derived ingredient used as a protein or functional ingredient."
+            "A soybean-derived ingredient.",
+            "Why it is used: Can provide protein or functional properties."
         ),
 
         "soybean": (
             "🫘 Soybean",
-            "A legume used as a source of plant protein and other nutrients."
+            "A legume used as a source of plant protein and other nutrients.",
+            "Why it is used: Provides protein and can be used for functional properties."
         ),
 
         "sesame": (
             "🌱 Sesame",
-            "A seed commonly used for flavour, texture and dietary fat."
+            "A seed commonly used for flavour and texture.",
+            "Why it is used: Provides characteristic flavour, texture and dietary fat."
         ),
 
         "mustard": (
             "🌿 Mustard",
-            "A seed or spice used mainly for flavour."
+            "A seed or spice used mainly for flavour.",
+            "Why it is used: Provides characteristic aroma and taste."
         ),
 
         "egg": (
             "🥚 Egg",
-            "An animal-derived ingredient that provides protein and functional properties."
+            "An animal-derived ingredient that provides protein and functional properties.",
+            "Why it is used: Can provide structure, binding, texture and protein."
         ),
 
         "albumin": (
             "🥚 Albumin",
-            "A protein that can be derived from egg white."
+            "A protein that can be derived from egg white.",
+            "Why it is used: Provides protein and can contribute binding or foaming properties."
         ),
 
         "cocoa": (
             "🍫 Cocoa",
-            "A cocoa-derived ingredient used to provide chocolate flavour and colour."
+            "A cocoa-derived ingredient used for chocolate flavour and colour.",
+            "Why it is used: Provides characteristic chocolate flavour and colour."
         ),
 
         "cocoa powder": (
             "🍫 Cocoa Powder",
-            "Ground cocoa solids used to provide chocolate flavour and colour."
+            "Ground cocoa solids.",
+            "Why it is used: Provides chocolate flavour, colour and cocoa solids."
         ),
 
         "chocolate": (
             "🍫 Chocolate",
-            "A cocoa-based ingredient commonly combined with sugar and other ingredients."
+            "A cocoa-based ingredient commonly combined with sugar and other ingredients.",
+            "Why it is used: Provides chocolate flavour and contributes to texture."
         ),
 
         "vanilla": (
             "🌼 Vanilla",
-            "A flavouring ingredient used to provide a characteristic sweet aroma and taste."
+            "A flavouring ingredient with a characteristic sweet aroma.",
+            "Why it is used: Provides vanilla aroma and flavour."
         ),
 
         "cinnamon": (
             "🌿 Cinnamon",
-            "A spice used to provide aroma and flavour."
+            "A spice used for aroma and flavour.",
+            "Why it is used: Provides characteristic warm flavour and aroma."
         ),
 
         "pepper": (
             "🌿 Pepper",
-            "A spice used primarily to provide flavour and aroma."
+            "A spice used primarily for flavour and aroma.",
+            "Why it is used: Provides characteristic spicy flavour."
         ),
 
         "turmeric": (
             "🌿 Turmeric",
-            "A spice commonly used for flavour and natural yellow colour."
+            "A spice commonly used for flavour and natural yellow colour.",
+            "Why it is used: Provides flavour and colour."
         ),
 
         "cumin": (
             "🌿 Cumin",
-            "A spice used to provide aroma and flavour."
+            "A spice used to provide aroma and flavour.",
+            "Why it is used: Provides characteristic aroma and taste."
         ),
 
         "coriander": (
             "🌿 Coriander",
-            "An herb or spice used to provide flavour and aroma."
+            "An herb or spice used to provide flavour and aroma.",
+            "Why it is used: Adds characteristic flavour and aroma."
         ),
 
         "chilli": (
             "🌶️ Chilli",
-            "A spice or pepper ingredient used to provide heat and flavour."
+            "A pepper ingredient used to provide heat and flavour.",
+            "Why it is used: Provides spiciness and flavour."
         ),
 
         "ginger": (
             "🌿 Ginger",
-            "A plant ingredient commonly used for flavour and aroma."
+            "A plant ingredient commonly used for flavour and aroma.",
+            "Why it is used: Provides characteristic flavour and aroma."
         ),
 
         "garlic": (
             "🧄 Garlic",
-            "A plant ingredient commonly used to provide flavour and aroma."
+            "A plant ingredient commonly used to provide flavour and aroma.",
+            "Why it is used: Provides characteristic savoury flavour and aroma."
         )
     }
 
@@ -964,7 +1065,6 @@ def decode_ingredients(ingredients):
 
     already_added = set()
 
-    # Longest ingredients are checked first
     keywords = sorted(
         ingredient_guide.keys(),
         key=len,
@@ -981,7 +1081,7 @@ def decode_ingredients(ingredients):
 
         if re.search(pattern, text):
 
-            name, explanation = ingredient_guide[keyword]
+            name, explanation, purpose = ingredient_guide[keyword]
 
             if name not in already_added:
 
@@ -989,13 +1089,137 @@ def decode_ingredients(ingredients):
 
                     "name": name,
 
-                    "explanation": explanation
+                    "explanation": explanation,
+
+                    "purpose": purpose
 
                 })
 
                 already_added.add(name)
 
     return result
+
+
+# =========================================================
+# INGREDIENT-SPECIFIC HEALTH CAUTIONS
+# =========================================================
+
+def ingredient_health_cautions(product):
+
+    cautions = []
+
+    ingredients = str(
+        product.get("ingredients", "")
+    ).lower()
+
+    def contains(keyword):
+
+        return re.search(
+            r"(?<![a-z])"
+            + re.escape(keyword)
+            + r"(?![a-z])",
+            ingredients
+        ) is not None
+
+    # Palm oil
+    if contains("palm oil") or contains("palm fat"):
+
+        cautions.append({
+
+            "icon": "🌴",
+
+            "title": "Palm Oil Detected",
+
+            "text":
+                "Palm oil is listed as an ingredient. Palm oil contributes saturated fat, so the product's saturated-fat content and overall portion should be considered when evaluating its nutritional profile.",
+
+            "class": "caution"
+
+        })
+
+    # Hydrogenated fats
+    if (
+        contains("hydrogenated oil")
+        or contains("hydrogenated fat")
+        or contains("partially hydrogenated")
+    ):
+
+        cautions.append({
+
+            "icon": "⚠️",
+
+            "title": "Hydrogenated Fat Detected",
+
+            "text":
+                "A hydrogenated fat ingredient is listed. Check the nutrition label for saturated fat and any available trans-fat information.",
+
+            "class": "caution"
+
+        })
+
+    # Added sugar ingredients
+    sugar_keywords = [
+        "sugar",
+        "glucose",
+        "dextrose",
+        "fructose",
+        "sucrose",
+        "maltose",
+        "syrup"
+    ]
+
+    sugar_detected = any(
+        contains(keyword)
+        for keyword in sugar_keywords
+    )
+
+    if sugar_detected:
+
+        sugar_value = safe_number(
+            product.get("sugar")
+        )
+
+        if sugar_value > 15:
+
+            cautions.append({
+
+                "icon": "🍬",
+
+                "title": "Added Sugar Ingredients Detected",
+
+                "text":
+                    "The ingredient list contains one or more sugar-based ingredients, and the product also has a relatively high sugar value per 100 g.",
+
+                "class": "caution"
+
+            })
+
+    # Preservatives
+    preservative_keywords = [
+        "sodium benzoate",
+        "potassium sorbate",
+        "preservative"
+    ]
+
+    if any(
+        contains(keyword)
+        for keyword in preservative_keywords
+    ):
+
+        cautions.append({
+
+            "icon": "🧪",
+
+            "title": "Preservative Detected",
+
+            "text":
+                "A preservative is listed. Preservatives are commonly used to slow spoilage and help maintain shelf stability.",
+
+            "class": "caution"
+
+        })
+
+    return cautions
 
 
 # =========================================================
@@ -1099,6 +1323,15 @@ def disease_cautions(product):
             }
 
         )
+
+    # Ingredient-specific cautions
+    ingredient_cautions = ingredient_health_cautions(
+        product
+    )
+
+    cautions.extend(
+        ingredient_cautions
+    )
 
     return cautions
 
@@ -1490,6 +1723,9 @@ def get_from_open_food_facts(barcode):
     ingredients = raw.get(
         "ingredients_text",
         ""
+    ) or raw.get(
+        "ingredients_text_en",
+        ""
     ) or ""
 
     declared_allergens = raw.get(
@@ -1522,42 +1758,76 @@ def get_from_open_food_facts(barcode):
 
     sugar = nutrition.get(
         "sugars_100g",
-        0
+        nutrition.get(
+            "sugars",
+            0
+        )
     )
 
     fat = nutrition.get(
         "fat_100g",
-        0
+        nutrition.get(
+            "fat",
+            0
+        )
     )
 
     protein = nutrition.get(
         "proteins_100g",
-        0
+        nutrition.get(
+            "proteins",
+            0
+        )
     )
 
     salt = nutrition.get(
         "salt_100g",
-        0
+        nutrition.get(
+            "salt",
+            0
+        )
+    )
+
+    # Product-name fallback hierarchy
+    product_name = (
+        raw.get("product_name")
+        or raw.get("product_name_en")
+        or raw.get("product_name_in")
+        or raw.get("generic_name")
+        or raw.get("generic_name_en")
+        or ""
+    )
+
+    brands = (
+        raw.get("brands")
+        or raw.get("brand_owner")
+        or ""
+    )
+
+    if not product_name:
+
+        if brands:
+            product_name = brands
+
+        else:
+            product_name = "Unknown Product"
+
+    image = (
+        raw.get("image_front_url")
+        or raw.get("image_url")
+        or raw.get("image_front_small_url")
+        or ""
     )
 
     product = {
 
-        "name": raw.get(
-            "product_name",
-            "Unknown Product"
-        ),
+        "name": product_name,
 
-        "brands": raw.get(
-            "brands",
-            ""
-        ),
+        "brands": brands,
 
         "barcode": barcode,
 
-        "image": raw.get(
-            "image_front_url",
-            ""
-        ),
+        "image": image,
 
         "ingredients": ingredients,
 
@@ -1709,21 +1979,26 @@ def get_from_usda(barcode):
 
         elif "sodium" in name:
 
-            # Approximate conversion:
-            # sodium mg -> salt g
             salt = value * 2.5 / 1000
+
+    product_name = (
+        food.get("description")
+        or food.get("lowercaseDescription")
+        or food.get("brandName")
+        or "Unknown Product"
+    )
+
+    brand = (
+        food.get("brandOwner")
+        or food.get("brandName")
+        or ""
+    )
 
     product = {
 
-        "name": food.get(
-            "description",
-            "Unknown Product"
-        ),
+        "name": product_name,
 
-        "brands": food.get(
-            "brandOwner",
-            ""
-        ),
+        "brands": brand,
 
         "barcode": barcode,
 
