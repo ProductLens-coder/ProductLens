@@ -1,0 +1,59 @@
+name: ProductLens ingredient data fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ingredient-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch ingredient extraction
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('app.py')
+          text = path.read_text(encoding='utf-8')
+
+          old = '''# =========================================================\n# OPEN FOOD FACTS\n# =========================================================\ndef get_from_open_food_facts(barcode):'''
+
+          new = '''# =========================================================\n# ROBUST INGREDIENT EXTRACTION\n# =========================================================\ndef extract_off_ingredients(raw):\n\n    # Prefer the human-readable ingredient text when available.\n    candidates = [\n        raw.get("ingredients_text"),\n        raw.get("ingredients_text_en"),\n        raw.get("ingredients_text_with_allergens"),\n        raw.get("ingredients_text_with_allergens_en")\n    ]\n\n    for value in candidates:\n        if value and str(value).strip():\n            return str(value).strip()\n\n    # Some Open Food Facts records only contain the structured ingredients array.\n    structured = raw.get("ingredients") or []\n    parts = []\n\n    if isinstance(structured, list):\n        for item in structured:\n            if not isinstance(item, dict):\n                continue\n\n            name = (\n                item.get("text")\n                or item.get("text_en")\n                or item.get("id")\n                or ""\n            )\n\n            if name and str(name).strip():\n                parts.append(str(name).strip())\n\n    if parts:\n        return ", ".join(parts)\n\n    return ""\n\n\n# =========================================================\n# OPEN FOOD FACTS\n# =========================================================\ndef get_from_open_food_facts(barcode):'''
+
+          if old not in text:
+              raise SystemExit('OPEN FOOD FACTS marker not found; refusing unsafe patch.')
+
+          if 'def extract_off_ingredients(raw):' not in text:
+              text = text.replace(old, new, 1)
+
+          old_assignment = '''        ingredients = raw.get(\n            "ingredients_text",\n            ""\n        ) or ""'''
+
+          new_assignment = '''        ingredients = extract_off_ingredients(raw)'''
+
+          if old_assignment not in text:
+              raise SystemExit('Expected ingredient assignment not found; refusing unsafe patch.')
+
+          text = text.replace(old_assignment, new_assignment, 1)
+          path.write_text(text, encoding='utf-8')
+
+      - name: Validate Python syntax
+        run: python -m py_compile app.py
+
+      - name: Commit patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.py
+          git rm .github/workflows/ingredient-fix.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix ingredient extraction [skip ci]"
+          git push
