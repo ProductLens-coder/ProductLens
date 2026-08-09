@@ -1,601 +1,32 @@
 from flask import Flask, render_template, request
 import requests
 import re
-import html
-from urllib.parse import quote
 
 app = Flask(__name__)
 
-# ============================================================
+
+# =========================================================
 # API SETTINGS
-# ============================================================
+# =========================================================
 
 OFF_API = "https://world.openfoodfacts.org/api/v2/product/{}.json"
-OFF_API_V0 = "https://world.openfoodfacts.org/api/v0/product/{}.json"
 
 USDA_API = "https://api.nal.usda.gov/fdc/v1/foods/search"
+
+# DEMO_KEY has limited usage.
+# Replace with your own USDA API key later if needed.
 USDA_API_KEY = "DEMO_KEY"
 
 HEADERS = {
-    "User-Agent": "ProductLens/2.0 (Food Ingredient Analysis App)",
-    "Accept": "application/json",
-}
-
-REQUEST_TIMEOUT = 15
-
-
-# ============================================================
-# INGREDIENT EXPLANATION GUIDE
-# ============================================================
-
-INGREDIENT_GUIDE = {
-
-    # --------------------------------------------------------
-    # FLOURS / GRAINS
-    # --------------------------------------------------------
-
-    "wheat": {
-        "category": "Grain / Cereal",
-        "used_for": "Provides structure, bulk and carbohydrates in bakery and cereal products.",
-    },
-
-    "wheat flour": {
-        "category": "Flour",
-        "used_for": "Used as a main flour for structure, texture and bulk.",
-    },
-
-    "whole wheat": {
-        "category": "Whole Grain",
-        "used_for": "Provides grain structure, carbohydrates and naturally occurring fibre.",
-    },
-
-    "whole wheat flour": {
-        "category": "Whole Grain Flour",
-        "used_for": "Used to provide whole-grain structure, bulk and fibre.",
-    },
-
-    "maida": {
-        "category": "Refined Flour",
-        "used_for": "Used to provide structure, softness and bulk in baked and processed foods.",
-    },
-
-    "atta": {
-        "category": "Whole Grain Flour",
-        "used_for": "Used as a grain-based flour and provides carbohydrates and fibre.",
-    },
-
-    "rice": {
-        "category": "Grain",
-        "used_for": "Provides carbohydrates and bulk.",
-    },
-
-    "rice flour": {
-        "category": "Flour",
-        "used_for": "Used for texture, binding, crispness and bulk.",
-    },
-
-    "corn": {
-        "category": "Grain",
-        "used_for": "Provides carbohydrates and bulk.",
-    },
-
-    "corn flour": {
-        "category": "Flour / Thickener",
-        "used_for": "Used for thickening, coating and improving texture.",
-    },
-
-    "corn starch": {
-        "category": "Starch / Thickener",
-        "used_for": "Primarily used as a thickener and texture modifier.",
-    },
-
-    "potato": {
-        "category": "Vegetable / Starch",
-        "used_for": "Provides starch, bulk and texture and is commonly used in snacks and processed foods.",
-    },
-
-    "potato starch": {
-        "category": "Starch / Thickener",
-        "used_for": "Used to provide thickness, binding and a smooth or crisp texture.",
-    },
-
-    "tapioca": {
-        "category": "Starch",
-        "used_for": "Provides starch and is commonly used for texture, binding and thickening.",
-    },
-
-    "tapioca starch": {
-        "category": "Starch / Thickener",
-        "used_for": "Used for thickening, binding and improving texture.",
-    },
-
-    "oat": {
-        "category": "Whole Grain",
-        "used_for": "Provides carbohydrates, fibre and grain-based bulk.",
-    },
-
-    "oats": {
-        "category": "Whole Grain",
-        "used_for": "Provides carbohydrates, fibre and grain-based bulk.",
-    },
-
-    "oat flour": {
-        "category": "Whole Grain Flour",
-        "used_for": "Used for grain-based structure, texture and fibre.",
-    },
-
-    "barley": {
-        "category": "Grain",
-        "used_for": "Provides grain-based carbohydrates and fibre.",
-    },
-
-    "rye": {
-        "category": "Grain",
-        "used_for": "Provides grain-based carbohydrates and contributes to texture.",
-    },
-
-    "semolina": {
-        "category": "Wheat Grain Product",
-        "used_for": "Used to provide structure, texture and grain-based bulk.",
-    },
-
-    "suji": {
-        "category": "Wheat Grain Product",
-        "used_for": "Used to provide structure, texture and grain-based bulk.",
-    },
-
-    "sooji": {
-        "category": "Wheat Grain Product",
-        "used_for": "Used to provide structure, texture and grain-based bulk.",
-    },
-
-    # --------------------------------------------------------
-    # SUGARS
-    # --------------------------------------------------------
-
-    "sugar": {
-        "category": "Sweetener",
-        "used_for": "Adds sweetness, contributes to texture and can help with browning.",
-    },
-
-    "glucose": {
-        "category": "Sugar / Sweetener",
-        "used_for": "Provides sweetness and carbohydrates and can influence texture and browning.",
-    },
-
-    "glucose syrup": {
-        "category": "Sweetener / Syrup",
-        "used_for": "Adds sweetness and helps control texture and crystallisation.",
-    },
-
-    "fructose": {
-        "category": "Sugar",
-        "used_for": "Provides sweetness and carbohydrates.",
-    },
-
-    "maltose": {
-        "category": "Sugar",
-        "used_for": "Provides sweetness and carbohydrates.",
-    },
-
-    "dextrose": {
-        "category": "Sugar / Sweetener",
-        "used_for": "Provides sweetness and carbohydrates and is commonly used in processed foods.",
-    },
-
-    "invert sugar": {
-        "category": "Sweetener",
-        "used_for": "Provides sweetness and helps maintain moisture and texture.",
-    },
-
-    "molasses": {
-        "category": "Sweetener",
-        "used_for": "Adds sweetness, colour and flavour.",
-    },
-
-    "honey": {
-        "category": "Natural Sweetener",
-        "used_for": "Provides sweetness, flavour and contributes to moisture and browning.",
-    },
-
-    "maltodextrin": {
-        "category": "Carbohydrate / Bulking Agent",
-        "used_for": "Provides carbohydrate-based bulk and can improve texture and formulation.",
-    },
-
-    # --------------------------------------------------------
-    # OILS / FATS
-    # --------------------------------------------------------
-
-    "palm oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Provides fat and is used for texture, cooking stability and mouthfeel.",
-    },
-
-    "palmolein": {
-        "category": "Vegetable Oil",
-        "used_for": "Used as a cooking and food-processing fat.",
-    },
-
-    "sunflower oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Provides fat and is commonly used for cooking and food processing.",
-    },
-
-    "soybean oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Provides fat and is used for cooking, texture and food processing.",
-    },
-
-    "canola oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Used as a vegetable cooking oil and provides fat.",
-    },
-
-    "rapeseed oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Used as a vegetable cooking oil and provides fat.",
-    },
-
-    "coconut oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Provides fat and contributes to texture and flavour.",
-    },
-
-    "butter": {
-        "category": "Dairy / Fat",
-        "used_for": "Provides fat, flavour and contributes to texture.",
-    },
-
-    "vegetable oil": {
-        "category": "Vegetable Oil",
-        "used_for": "Provides fat and is used for cooking and texture.",
-    },
-
-    "vegetable fat": {
-        "category": "Vegetable Fat",
-        "used_for": "Provides fat and contributes to texture and mouthfeel.",
-    },
-
-    "margarine": {
-        "category": "Vegetable Fat",
-        "used_for": "Provides fat and contributes to texture and spreadability.",
-    },
-
-    # --------------------------------------------------------
-    # DAIRY
-    # --------------------------------------------------------
-
-    "milk": {
-        "category": "Dairy",
-        "used_for": "Provides proteins, carbohydrates, minerals and contributes to texture.",
-    },
-
-    "milk powder": {
-        "category": "Dairy",
-        "used_for": "Provides milk solids, proteins and dairy flavour while improving texture.",
-    },
-
-    "skimmed milk powder": {
-        "category": "Dairy",
-        "used_for": "Provides milk proteins and solids with relatively less fat.",
-    },
-
-    "whey": {
-        "category": "Dairy Protein",
-        "used_for": "Provides dairy proteins and contributes to nutritional and textural properties.",
-    },
-
-    "whey powder": {
-        "category": "Dairy Protein",
-        "used_for": "Used to provide dairy proteins, solids and texture.",
-    },
-
-    "cheese": {
-        "category": "Dairy",
-        "used_for": "Provides dairy fat, proteins and flavour.",
-    },
-
-    "cream": {
-        "category": "Dairy",
-        "used_for": "Provides dairy fat and contributes to richness and texture.",
-    },
-
-    "casein": {
-        "category": "Dairy Protein",
-        "used_for": "Milk protein used for nutritional value, texture and emulsification.",
-    },
-
-    "caseinate": {
-        "category": "Dairy Protein",
-        "used_for": "Milk-derived protein used for nutritional value, emulsification and texture.",
-    },
-
-    "lactose": {
-        "category": "Milk Sugar",
-        "used_for": "Naturally occurring milk sugar used for sweetness and food formulation.",
-    },
-
-    # --------------------------------------------------------
-    # SALTS / MINERALS
-    # --------------------------------------------------------
-
-    "salt": {
-        "category": "Mineral / Seasoning",
-        "used_for": "Adds flavour and can help control moisture and preserve foods.",
-    },
-
-    "sodium chloride": {
-        "category": "Mineral / Salt",
-        "used_for": "Used as salt for flavour and food preservation.",
-    },
-
-    "sodium bicarbonate": {
-        "category": "Leavening Agent",
-        "used_for": "Releases carbon dioxide during baking, helping foods rise.",
-    },
-
-    "baking soda": {
-        "category": "Leavening Agent",
-        "used_for": "Helps baked foods rise by producing carbon dioxide.",
-    },
-
-    "calcium carbonate": {
-        "category": "Mineral / Food Additive",
-        "used_for": "Used as a calcium source, acidity regulator or food additive.",
-    },
-
-    "potassium chloride": {
-        "category": "Mineral / Salt",
-        "used_for": "Used as a mineral salt and may contribute to flavour and formulation.",
-    },
-
-    # --------------------------------------------------------
-    # ACIDITY / LEAVENING
-    # --------------------------------------------------------
-
-    "citric acid": {
-        "category": "Acidity Regulator",
-        "used_for": "Adds acidity and helps control flavour and product stability.",
-    },
-
-    "malic acid": {
-        "category": "Acidity Regulator",
-        "used_for": "Provides acidity and contributes to flavour.",
-    },
-
-    "lactic acid": {
-        "category": "Acidity Regulator",
-        "used_for": "Used to regulate acidity and contribute to flavour.",
-    },
-
-    "tartaric acid": {
-        "category": "Acidity Regulator",
-        "used_for": "Provides acidity and is commonly used in baking and food formulation.",
-    },
-
-    "ammonium bicarbonate": {
-        "category": "Leavening Agent",
-        "used_for": "Produces gas during baking to help create a light texture.",
-    },
-
-    # --------------------------------------------------------
-    # EMULSIFIERS
-    # --------------------------------------------------------
-
-    "lecithin": {
-        "category": "Emulsifier",
-        "used_for": "Helps oil and water-based ingredients mix and improves texture.",
-    },
-
-    "soy lecithin": {
-        "category": "Emulsifier",
-        "used_for": "Helps ingredients mix evenly and improves texture and processing.",
-    },
-
-    "mono and diglycerides": {
-        "category": "Emulsifier",
-        "used_for": "Helps maintain a uniform mixture and improves texture and stability.",
-    },
-
-    "mono- and diglycerides": {
-        "category": "Emulsifier",
-        "used_for": "Helps maintain a uniform mixture and improves texture and stability.",
-    },
-
-    "monoglycerides": {
-        "category": "Emulsifier",
-        "used_for": "Helps maintain texture and keep ingredients evenly distributed.",
-    },
-
-    "diglycerides": {
-        "category": "Emulsifier",
-        "used_for": "Helps maintain texture and ingredient stability.",
-    },
-
-    # --------------------------------------------------------
-    # THICKENERS / STABILIZERS
-    # --------------------------------------------------------
-
-    "xanthan gum": {
-        "category": "Thickener / Stabilizer",
-        "used_for": "Improves thickness, texture and stability.",
-    },
-
-    "guar gum": {
-        "category": "Thickener / Stabilizer",
-        "used_for": "Adds viscosity and helps stabilize food mixtures.",
-    },
-
-    "pectin": {
-        "category": "Gelling Agent",
-        "used_for": "Helps create gel structure and improve texture.",
-    },
-
-    "carrageenan": {
-        "category": "Thickener / Stabilizer",
-        "used_for": "Used to thicken and stabilize food products.",
-    },
-
-    "cellulose": {
-        "category": "Food Texture Agent",
-        "used_for": "Can provide structure, bulk and texture in processed foods.",
-    },
-
-    "modified starch": {
-        "category": "Starch / Thickener",
-        "used_for": "Modified to improve thickening, stability or texture.",
-    },
-
-    "modified food starch": {
-        "category": "Starch / Thickener",
-        "used_for": "Used to improve thickening, stability and texture.",
-    },
-
-    # --------------------------------------------------------
-    # PRESERVATIVES
-    # --------------------------------------------------------
-
-    "sodium benzoate": {
-        "category": "Preservative",
-        "used_for": "Helps inhibit the growth of microorganisms and extend shelf life.",
-    },
-
-    "potassium sorbate": {
-        "category": "Preservative",
-        "used_for": "Helps prevent mould and yeast growth and extend shelf life.",
-    },
-
-    "sodium metabisulfite": {
-        "category": "Preservative / Antioxidant",
-        "used_for": "Helps prevent oxidation and microbial spoilage.",
-    },
-
-    "sorbic acid": {
-        "category": "Preservative",
-        "used_for": "Helps control mould and yeast growth.",
-    },
-
-    "benzoic acid": {
-        "category": "Preservative",
-        "used_for": "Helps inhibit microbial growth in food products.",
-    },
-
-    # --------------------------------------------------------
-    # FLAVOURS / COLOURS
-    # --------------------------------------------------------
-
-    "vanilla": {
-        "category": "Flavouring",
-        "used_for": "Adds vanilla flavour and aroma.",
-    },
-
-    "vanilla extract": {
-        "category": "Flavouring",
-        "used_for": "Adds vanilla flavour and aroma.",
-    },
-
-    "cocoa": {
-        "category": "Flavouring / Cocoa",
-        "used_for": "Provides chocolate flavour, colour and aroma.",
-    },
-
-    "cocoa powder": {
-        "category": "Flavouring / Cocoa",
-        "used_for": "Provides chocolate flavour, colour and aroma.",
-    },
-
-    "natural flavour": {
-        "category": "Flavouring",
-        "used_for": "Adds or enhances the characteristic flavour of the food.",
-    },
-
-    "artificial flavour": {
-        "category": "Flavouring",
-        "used_for": "Adds or enhances a desired flavour profile.",
-    },
-
-    "caramel": {
-        "category": "Colour / Flavour",
-        "used_for": "Adds brown colour and can contribute caramel-like flavour.",
-    },
-
-    # --------------------------------------------------------
-    # PROTEINS
-    # --------------------------------------------------------
-
-    "soy protein": {
-        "category": "Plant Protein",
-        "used_for": "Provides plant-based protein and can improve texture.",
-    },
-
-    "pea protein": {
-        "category": "Plant Protein",
-        "used_for": "Provides plant-based protein and contributes to nutritional content.",
-    },
-
-    "milk protein": {
-        "category": "Dairy Protein",
-        "used_for": "Provides milk-derived protein and contributes to texture.",
-    },
-
-    "wheat protein": {
-        "category": "Plant Protein",
-        "used_for": "Provides wheat-derived protein and can contribute to structure and texture.",
-    },
-
-    # --------------------------------------------------------
-    # FIBRE
-    # --------------------------------------------------------
-
-    "dietary fiber": {
-        "category": "Fibre",
-        "used_for": "Provides dietary fibre and can contribute to texture and bulk.",
-    },
-
-    "dietary fibre": {
-        "category": "Fibre",
-        "used_for": "Provides dietary fibre and can contribute to texture and bulk.",
-    },
-
-    "fiber": {
-        "category": "Fibre",
-        "used_for": "Provides dietary fibre and can contribute to texture and bulk.",
-    },
-
-    "fibre": {
-        "category": "Fibre",
-        "used_for": "Provides dietary fibre and can contribute to texture and bulk.",
-    },
-
-    "inulin": {
-        "category": "Fibre",
-        "used_for": "A type of soluble fibre used for fibre enrichment and texture.",
-    },
+    "User-Agent": "ProductLens/1.0 (student project)"
 }
 
 
-# ============================================================
+# =========================================================
 # ALLERGEN DATABASE
-# ============================================================
+# =========================================================
 
 ALLERGEN_GUIDE = {
-
-    "Milk / Dairy": [
-        "milk",
-        "milk powder",
-        "skimmed milk",
-        "skimmed milk powder",
-        "whey",
-        "whey powder",
-        "casein",
-        "caseinate",
-        "lactose",
-        "cream",
-        "butter",
-        "cheese",
-        "milk protein",
-    ],
 
     "Wheat / Gluten": [
         "wheat",
@@ -611,1903 +42,1966 @@ ALLERGEN_GUIDE = {
         "semolina",
         "suji",
         "sooji",
+        "rava",
+        "en:wheat",
+        "en:gluten"
+    ],
+
+    "Milk / Dairy": [
+        "milk",
+        "milk powder",
+        "milk solids",
+        "skimmed milk",
+        "skim milk",
+        "milk protein",
+        "milk fat",
+        "milk solids non fat",
+        "whey",
+        "whey powder",
+        "whey protein",
+        "casein",
+        "caseinate",
+        "sodium caseinate",
+        "calcium caseinate",
+        "lactose",
+        "butter",
+        "cream",
+        "dairy",
+        "cheese",
+        "curd",
+        "ghee",
+        "milk derivative",
+        "en:milk"
+    ],
+
+    "Tree Nuts": [
+        "tree nut",
+        "tree nuts",
+        "almond",
+        "almonds",
+        "cashew",
+        "cashews",
+        "walnut",
+        "walnuts",
+        "pistachio",
+        "pistachios",
+        "hazelnut",
+        "hazelnuts",
+        "pecan",
+        "pecans",
+        "macadamia",
+        "macadamia nuts",
+        "en:nuts",
+        "en:tree-nuts",
+        "en:almond",
+        "en:cashew",
+        "en:walnut",
+        "en:pistachio"
+    ],
+
+    "Peanuts": [
+        "peanut",
+        "peanuts",
+        "groundnut",
+        "groundnuts",
+        "ground nut",
+        "peanut oil",
+        "peanut flour",
+        "en:peanuts"
     ],
 
     "Soy": [
         "soy",
         "soya",
         "soybean",
+        "soybeans",
         "soy protein",
         "soy lecithin",
         "soya lecithin",
-    ],
-
-    "Peanut": [
-        "peanut",
-        "groundnut",
-        "peanut flour",
-        "peanut butter",
-    ],
-
-    "Tree Nuts": [
-        "almond",
-        "cashew",
-        "walnut",
-        "pistachio",
-        "hazelnut",
-        "pecan",
-        "macadamia",
+        "soy flour",
+        "en:soy",
+        "en:soybeans"
     ],
 
     "Sesame": [
         "sesame",
+        "sesame seeds",
         "sesame seed",
         "til",
+        "en:sesame"
+    ],
+
+    "Mustard": [
+        "mustard",
+        "mustard seeds",
+        "mustard seed",
+        "en:mustard"
     ],
 
     "Egg": [
         "egg",
+        "eggs",
+        "egg powder",
         "egg white",
         "egg yolk",
-        "albumen",
-    ],
-}
-
-
-# ============================================================
-# INGREDIENT CATEGORIES
-# ============================================================
-
-CATEGORY_KEYWORDS = {
-
-    "🌾 Grains & Flours": [
-        "wheat",
-        "flour",
-        "rice",
-        "corn",
-        "potato",
-        "tapioca",
-        "starch",
-        "maida",
-        "atta",
-        "oat",
-        "barley",
-        "rye",
-        "semolina",
-        "suji",
-        "sooji",
-    ],
-
-    "🍬 Sugars & Sweeteners": [
-        "sugar",
-        "glucose",
-        "fructose",
-        "dextrose",
-        "syrup",
-        "maltose",
-        "sweetener",
-        "molasses",
-        "honey",
-        "maltodextrin",
-    ],
-
-    "🧈 Fats & Oils": [
-        "oil",
-        "butter",
-        "fat",
-        "palmolein",
-        "margarine",
-    ],
-
-    "🥛 Dairy": [
-        "milk",
-        "whey",
-        "casein",
-        "lactose",
-        "cream",
-        "cheese",
-        "butter",
-    ],
-
-    "🧂 Salt & Minerals": [
-        "salt",
-        "sodium",
-        "calcium",
-        "potassium",
-        "magnesium",
-    ],
-
-    "🧪 Additives & Preservatives": [
-        "benzoate",
-        "sorbate",
-        "preservative",
-        "metabisulfite",
-        "sulphite",
-        "sulfite",
-    ],
-
-    "🧴 Thickeners & Stabilizers": [
-        "gum",
-        "pectin",
-        "carrageenan",
-        "starch",
-        "cellulose",
-        "thickener",
-        "stabilizer",
-    ],
-
-    "🧬 Emulsifiers": [
-        "lecithin",
-        "emulsifier",
-        "diglyceride",
-        "monoglyceride",
-    ],
-
-    "🌿 Flavourings": [
-        "flavour",
-        "flavor",
-        "vanilla",
-        "cocoa",
-        "extract",
-        "aroma",
-    ],
-}
-
-
-# ============================================================
-# SAFE TEXT HELPERS
-# ============================================================
-
-def clean_text(value):
-    """Safely convert values into readable text."""
-
-    if value is None:
-        return ""
-
-    if isinstance(value, (list, tuple)):
-        return ", ".join(str(x) for x in value if x)
-
-    return str(value).strip()
-
-
-def clean_barcode(barcode):
-    """
-    Clean barcode input.
-
-    Supports:
-    8901234567890
-    8901234567890.0
-    spaces
-    hyphens
-    scanner prefixes
-    """
-
-    if barcode is None:
-        return ""
-
-    barcode = str(barcode).strip()
-
-    # Excel-style barcode
-    if barcode.endswith(".0"):
-        barcode = barcode[:-2]
-
-    # Remove everything except numbers
-    digits = re.sub(r"\D", "", barcode)
-
-    return digits
-
-
-def normalize_ingredient(text):
-    """Normalize ingredient text for matching."""
-
-    text = clean_text(text).lower()
-
-    text = html.unescape(text)
-
-    text = text.replace("_", " ")
-
-    # Remove bracket information
-    text = re.sub(r"\([^)]*\)", "", text)
-    text = re.sub(r"\[[^\]]*\]", "", text)
-
-    # Remove percentage values
-    text = re.sub(r"\d+(?:\.\d+)?\s*%", "", text)
-
-    # Normalize spaces
-    text = re.sub(r"\s+", " ", text)
-
-    text = text.strip(" ,;:-.")
-
-    return text
-
-
-# ============================================================
-# OPEN FOOD FACTS LOOKUP
-# ============================================================
-
-def lookup_openfoodfacts(barcode):
-    """
-    Robust Open Food Facts barcode lookup.
-
-    Uses multiple endpoints and handles incomplete API responses.
-    """
-
-    barcode = clean_barcode(barcode)
-
-    if not barcode:
-        return None
-
-    urls = [
-        OFF_API.format(quote(barcode)),
-        OFF_API_V0.format(quote(barcode)),
+        "albumin",
+        "en:eggs",
+        "en:egg"
     ]
-
-    for url in urls:
-
-        try:
-
-            response = requests.get(
-                url,
-                headers=HEADERS,
-                timeout=REQUEST_TIMEOUT,
-            )
-
-            print(
-                "OFF REQUEST:",
-                url,
-                "STATUS:",
-                response.status_code
-            )
-
-            if response.status_code != 200:
-                continue
-
-            try:
-                data = response.json()
-            except ValueError:
-                continue
-
-            if not isinstance(data, dict):
-                continue
-
-            product = data.get("product")
-
-            if isinstance(product, dict) and product:
-                return product
-
-        except requests.exceptions.Timeout:
-            print("OFF TIMEOUT:", url)
-            continue
-
-        except requests.exceptions.ConnectionError:
-            print("OFF CONNECTION ERROR:", url)
-            continue
-
-        except requests.exceptions.RequestException as exc:
-            print("OFF REQUEST ERROR:", repr(exc))
-            continue
-
-        except Exception as exc:
-            print("OFF UNKNOWN ERROR:", repr(exc))
-            continue
-
-    return None
+}
 
 
-# ============================================================
-# USDA FALLBACK
-# ============================================================
+ALLERGEN_ICONS = {
 
-def lookup_usda(product_name):
+    "Wheat / Gluten": "🌾",
+    "Milk / Dairy": "🥛",
+    "Tree Nuts": "🌰",
+    "Peanuts": "🥜",
+    "Soy": "🫘",
+    "Sesame": "🌱",
+    "Mustard": "🌿",
+    "Egg": "🥚"
+}
 
-    if not product_name:
-        return None
+
+# =========================================================
+# SAFE NUMBER
+# =========================================================
+
+def safe_number(value, default=0):
 
     try:
 
-        params = {
-            "api_key": USDA_API_KEY,
-            "query": product_name,
-            "pageSize": 1,
-        }
+        if value is None:
+            return default
 
-        response = requests.get(
-            USDA_API,
-            params=params,
-            headers=HEADERS,
-            timeout=REQUEST_TIMEOUT,
-        )
+        if isinstance(value, str):
 
-        if response.status_code != 200:
-            return None
+            value = value.replace(",", "").strip()
 
-        data = response.json()
+            if value == "":
+                return default
 
-        foods = data.get("foods", [])
+        return float(value)
 
-        if foods:
-            return foods[0]
+    except (ValueError, TypeError):
 
-    except Exception as exc:
-        print("USDA ERROR:", repr(exc))
+        return default
 
-    return None
 
+# =========================================================
+# BARCODE NORMALIZATION
+# =========================================================
 
-# ============================================================
-# INGREDIENT EXTRACTION
-# ============================================================
+def normalize_barcodes(barcode):
 
-def get_ingredient_list(product):
+    barcode = str(barcode).strip()
 
-    ingredients = []
+    # Keep numbers only
+    barcode = re.sub(r"\D", "", barcode)
 
-    # --------------------------------------------------------
-    # Preferred OFF structured ingredients
-    # --------------------------------------------------------
+    codes = []
 
-    raw = product.get("ingredients", [])
+    if barcode:
+        codes.append(barcode)
 
-    if isinstance(raw, list):
+    # UPC-A -> EAN-13
+    if len(barcode) == 12:
+        codes.append("0" + barcode)
 
-        for item in raw:
+    # EAN-13 -> UPC-A
+    if len(barcode) == 13 and barcode.startswith("0"):
+        codes.append(barcode[1:])
 
-            text = ""
+    # Remove duplicates
+    return list(dict.fromkeys(codes))
 
-            if isinstance(item, dict):
 
-                text = (
-                    item.get("text")
-                    or item.get("id")
-                    or item.get("ingredient")
-                    or ""
-                )
-
-            else:
-                text = str(item)
-
-            text = clean_text(text)
-
-            if text:
-                ingredients.append(text)
-
-    # --------------------------------------------------------
-    # Fallback to ingredient text
-    # --------------------------------------------------------
-
-    if not ingredients:
-
-        raw_text = (
-            product.get("ingredients_text")
-            or product.get("ingredients_text_en")
-            or product.get("ingredients_text_fr")
-            or product.get("ingredients_text_hi")
-            or ""
-        )
-
-        raw_text = clean_text(raw_text)
-
-        if raw_text:
-
-            # Remove common introductory labels
-            raw_text = re.sub(
-                r"^\s*ingredients?\s*:\s*",
-                "",
-                raw_text,
-                flags=re.IGNORECASE,
-            )
-
-            parts = re.split(
-                r",|;|\n",
-                raw_text
-            )
-
-            for part in parts:
-
-                part = part.strip()
-
-                if part:
-                    ingredients.append(part)
-
-    # --------------------------------------------------------
-    # Remove duplicates while preserving order
-    # --------------------------------------------------------
-
-    unique = []
-
-    seen = set()
-
-    for ingredient in ingredients:
-
-        normalized = normalize_ingredient(ingredient)
-
-        if not normalized:
-            continue
-
-        if normalized not in seen:
-
-            seen.add(normalized)
-            unique.append(ingredient)
-
-    return unique
-
-
-# ============================================================
-# INGREDIENT EXPLANATION ENGINE
-# ============================================================
-
-def get_ingredient_explanation(ingredient):
-    """
-    Intelligent ingredient explanation engine.
-
-    Matching priority:
-    1. Exact ingredient match
-    2. Common ingredient variants
-    3. Singular/plural normalization
-    4. Specific phrase matching
-    5. Safe generic explanation
-    """
-
-    original = clean_text(ingredient)
-    normalized = normalize_ingredient(original)
-
-    if not normalized:
-        return {
-            "name": original,
-            "category": "Ingredient",
-            "used_for": "Ingredient information is not available.",
-        }
-
-    # ========================================================
-    # 1. EXACT MATCH
-    # ========================================================
-
-    if normalized in INGREDIENT_GUIDE:
-
-        info = INGREDIENT_GUIDE[normalized]
-
-        return {
-            "name": original,
-            "category": info["category"],
-            "used_for": info["used_for"],
-        }
-
-    # ========================================================
-    # 2. COMMON INGREDIENT VARIANTS
-    # ========================================================
-
-    variant_map = {
-
-        # Potato
-        "potatoes": "potato",
-        "potato powder": "potato",
-        "potato flakes": "potato",
-        "potato granules": "potato",
-
-        # Tomato
-        "tomatoes": "tomato",
-        "tomato powder": "tomato",
-        "tomato paste": "tomato",
-
-        # Onion
-        "onions": "onion",
-        "onion powder": "onion",
-        "onion flakes": "onion",
-
-        # Garlic
-        "garlic powder": "garlic",
-        "garlic flakes": "garlic",
-
-        # Wheat
-        "wheat grains": "wheat",
-        "wheat grain": "wheat",
-
-        # Rice
-        "rice grains": "rice",
-        "rice grain": "rice",
-
-        # Corn
-        "corn starch": "corn starch",
-
-        # Oat
-        "oat flakes": "oats",
-        "rolled oats": "oats",
-
-        # Milk
-        "milk solids": "milk",
-        "milk solids non fat": "milk",
-        "milk solids-not-fat": "milk",
-
-        # Sugar
-        "sugars": "sugar",
-        "cane sugar": "sugar",
-        "sucrose": "sugar",
-
-        # Oil
-        "vegetable oils": "vegetable oil",
-        "sunflower oil": "sunflower oil",
-        "palm oil": "palm oil",
-
-        # Salt
-        "sodium chloride": "sodium chloride",
-    }
-
-    if normalized in variant_map:
-
-        mapped_key = variant_map[normalized]
-
-        if mapped_key in INGREDIENT_GUIDE:
-
-            info = INGREDIENT_GUIDE[mapped_key]
-
-            return {
-                "name": original,
-                "category": info["category"],
-                "used_for": info["used_for"],
-            }
-
-    # ========================================================
-    # 3. SIMPLE PLURAL NORMALIZATION
-    # ========================================================
-
-    singular = normalized
-
-    if singular.endswith("ies") and len(singular) > 4:
-        singular = singular[:-3] + "y"
-
-    elif singular.endswith("es") and len(singular) > 4:
-        singular = singular[:-2]
-
-    elif singular.endswith("s") and not singular.endswith("ss"):
-        singular = singular[:-1]
-
-    if singular in INGREDIENT_GUIDE:
-
-        info = INGREDIENT_GUIDE[singular]
-
-        return {
-            "name": original,
-            "category": info["category"],
-            "used_for": info["used_for"],
-        }
-
-    # ========================================================
-    # 4. SPECIFIC PHRASE MATCHING
-    # ========================================================
-
-    guide_keys = sorted(
-        INGREDIENT_GUIDE.keys(),
-        key=len,
-        reverse=True
-    )
-
-    for key in guide_keys:
-
-        key_normalized = normalize_ingredient(key)
-
-        if not key_normalized:
-            continue
-
-        # Exact phrase contained in ingredient
-        if re.search(
-            r"\b" + re.escape(key_normalized) + r"\b",
-            normalized
-        ):
-
-            info = INGREDIENT_GUIDE[key]
-
-            return {
-                "name": original,
-                "category": info["category"],
-                "used_for": info["used_for"],
-            }
-
-    # ========================================================
-    # 5. SAFE GENERIC CLASSIFICATION
-    # ========================================================
-
-    category = "Ingredient"
-
-    explanation = (
-        "Used as part of the product's formulation to contribute "
-        "to its texture, flavour, stability or nutritional composition."
-    )
-
-    # --------------------------------------------------------
-    # Grains / starches
-    # --------------------------------------------------------
-
-    if any(
-        word in normalized
-        for word in [
-            "starch",
-            "flour",
-            "cereal",
-            "grain",
-        ]
-    ):
-
-        category = "Starch / Grain"
-
-        explanation = (
-            "Provides carbohydrate-based bulk and may contribute "
-            "to texture, structure or binding."
-        )
-
-    # --------------------------------------------------------
-    # Potato-related ingredients
-    # --------------------------------------------------------
-
-    elif "potato" in normalized:
-
-        category = "Vegetable / Starch"
-
-        explanation = (
-            "Provides starch and bulk and is commonly used to "
-            "contribute to texture in processed foods."
-        )
-
-    # --------------------------------------------------------
-    # Oils / fats
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "oil",
-            "fat",
-            "shortening",
-        ]
-    ):
-
-        category = "Fat / Oil"
-
-        explanation = (
-            "Provides fat and contributes to texture, mouthfeel "
-            "and food-processing properties."
-        )
-
-    # --------------------------------------------------------
-    # Sweeteners
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "sugar",
-            "syrup",
-            "sweetener",
-            "sweetening",
-        ]
-    ):
-
-        category = "Sweetener"
-
-        explanation = (
-            "Used to provide sweetness and may also contribute "
-            "to texture, moisture and browning."
-        )
-
-    # --------------------------------------------------------
-    # Acidity
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "acid",
-            "citrate",
-            "citrate",
-        ]
-    ):
-
-        category = "Acidity Regulator"
-
-        explanation = (
-            "Used to control acidity and may contribute "
-            "to flavour and product stability."
-        )
-
-    # --------------------------------------------------------
-    # Thickeners
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "gum",
-            "pectin",
-            "thickener",
-            "stabilizer",
-            "stabiliser",
-        ]
-    ):
-
-        category = "Thickener / Stabilizer"
-
-        explanation = (
-            "Used to improve thickness, texture or stability "
-            "of the food formulation."
-        )
-
-    # --------------------------------------------------------
-    # Preservatives
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "preservative",
-            "benzoate",
-            "sorbate",
-            "sulfite",
-            "sulphite",
-            "metabisulfite",
-        ]
-    ):
-
-        category = "Preservative"
-
-        explanation = (
-            "Used to help maintain product stability and "
-            "extend shelf life."
-        )
-
-    # --------------------------------------------------------
-    # Emulsifiers
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "lecithin",
-            "emulsifier",
-            "diglyceride",
-            "monoglyceride",
-        ]
-    ):
-
-        category = "Emulsifier"
-
-        explanation = (
-            "Helps ingredients that normally do not mix easily "
-            "remain evenly distributed."
-        )
-
-    # --------------------------------------------------------
-    # Flavourings
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "flavour",
-            "flavor",
-            "aroma",
-            "extract",
-        ]
-    ):
-
-        category = "Flavouring"
-
-        explanation = (
-            "Used to provide or enhance the flavour or aroma "
-            "of the product."
-        )
-
-    # --------------------------------------------------------
-    # Nutrients
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "vitamin",
-            "mineral",
-            "iron",
-            "calcium",
-            "zinc",
-            "magnesium",
-        ]
-    ):
-
-        category = "Nutrient / Fortification"
-
-        explanation = (
-            "Used as a nutrient source or for nutritional "
-            "fortification."
-        )
-
-    # --------------------------------------------------------
-    # Protein
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "protein",
-            "peptide",
-        ]
-    ):
-
-        category = "Protein"
-
-        explanation = (
-            "Provides protein and may contribute to the "
-            "nutritional or structural properties of the product."
-        )
-
-    # --------------------------------------------------------
-    # Salt
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "salt",
-            "sodium chloride",
-        ]
-    ):
-
-        category = "Salt / Seasoning"
-
-        explanation = (
-            "Used mainly to provide salty flavour and can "
-            "also influence food preservation."
-        )
-
-    # --------------------------------------------------------
-    # Colouring
-    # --------------------------------------------------------
-
-    elif any(
-        word in normalized
-        for word in [
-            "colour",
-            "color",
-            "colouring",
-            "coloring",
-        ]
-    ):
-
-        category = "Colouring"
-
-        explanation = (
-            "Used to provide or enhance the colour of the food."
-        )
-
-    return {
-        "name": original,
-        "category": category,
-        "used_for": explanation,
-    }
-# ============================================================
-# INGREDIENT ORDER
-# ============================================================
-
-def build_ingredient_order(ingredients):
-
-    result = []
-
-    total = len(ingredients)
-
-    for index, ingredient in enumerate(ingredients):
-
-        explanation = get_ingredient_explanation(
-            ingredient
-        )
-
-        if total:
-
-            percentage = round(
-                ((total - index) / total) * 100
-            )
-
-        else:
-
-            percentage = 0
-
-        explanation["position"] = index + 1
-        explanation["percentage"] = percentage
-
-        if index == 0:
-
-            explanation["importance"] = "Primary ingredient"
-
-        elif index < 3:
-
-            explanation["importance"] = "Major ingredient"
-
-        else:
-
-            explanation["importance"] = "Later-listed ingredient"
-
-        result.append(explanation)
-
-    return result
-
-
-# ============================================================
+# =========================================================
 # ALLERGEN DETECTION
-# ============================================================
+# =========================================================
 
-def detect_allergens(ingredients, product):
+def detect_allergens(*texts):
+
+    combined_text = " ".join(
+        str(text)
+        for text in texts
+        if text
+    ).lower()
+
+    if not combined_text:
+        return []
+
+    combined_text = combined_text.replace("en:", " ")
+    combined_text = combined_text.replace("-", " ")
+    combined_text = combined_text.replace("_", " ")
+    combined_text = combined_text.replace(";", " ")
+    combined_text = combined_text.replace(",", " ")
 
     detected = []
 
-    ingredient_text = " ".join(
-        normalize_ingredient(x)
-        for x in ingredients
-    )
-
-    # --------------------------------------------------------
-    # Built-in allergen guide
-    # --------------------------------------------------------
-
     for allergen, keywords in ALLERGEN_GUIDE.items():
+
+        found_keyword = None
 
         for keyword in keywords:
 
-            keyword = normalize_ingredient(keyword)
+            clean_keyword = keyword.lower()
 
-            if keyword and keyword in ingredient_text:
+            clean_keyword = clean_keyword.replace(
+                "en:", ""
+            )
 
-                if allergen not in detected:
-                    detected.append(allergen)
+            clean_keyword = clean_keyword.replace(
+                "-", " "
+            )
 
+            clean_keyword = clean_keyword.replace(
+                "_", " "
+            )
+
+            pattern = (
+                r"(?<![a-z])"
+                + re.escape(clean_keyword)
+                + r"(?![a-z])"
+            )
+
+            if re.search(pattern, combined_text):
+
+                found_keyword = clean_keyword
                 break
 
-    # --------------------------------------------------------
-    # Open Food Facts allergen tags
-    # --------------------------------------------------------
+        if found_keyword:
 
-    off_allergens = product.get(
-        "allergens_tags",
-        []
-    )
+            detected.append({
 
-    mapping = {
-        "en:milk": "Milk / Dairy",
-        "en:wheat": "Wheat / Gluten",
-        "en:gluten": "Wheat / Gluten",
-        "en:soybeans": "Soy",
-        "en:soya": "Soy",
-        "en:peanuts": "Peanut",
-        "en:sesame-seeds": "Sesame",
-        "en:eggs": "Egg",
-        "en:nuts": "Tree Nuts",
-    }
+                "name": allergen,
 
-    if isinstance(off_allergens, list):
+                "icon": ALLERGEN_ICONS.get(
+                    allergen,
+                    "⚠️"
+                ),
 
-        for item in off_allergens:
+                "keyword": found_keyword
 
-            item = clean_text(item).lower()
-
-            if item in mapping:
-
-                name = mapping[item]
-
-                if name not in detected:
-                    detected.append(name)
+            })
 
     return detected
 
 
-# ============================================================
-# CATEGORY DETECTION
-# ============================================================
+# =========================================================
+# NUTRITION LEVEL
+# =========================================================
 
-def build_categories(ingredients):
+def nutrition_level(value, nutrient):
+
+    value = safe_number(value)
+
+    if nutrient == "sugar":
+
+        if value <= 5:
+            return {
+                "level": "Low",
+                "class": "low"
+            }
+
+        elif value <= 15:
+            return {
+                "level": "Moderate",
+                "class": "moderate"
+            }
+
+        return {
+            "level": "High",
+            "class": "high"
+        }
+
+    if nutrient == "fat":
+
+        if value <= 3:
+            return {
+                "level": "Low",
+                "class": "low"
+            }
+
+        elif value <= 17.5:
+            return {
+                "level": "Moderate",
+                "class": "moderate"
+            }
+
+        return {
+            "level": "High",
+            "class": "high"
+        }
+
+    if nutrient == "salt":
+
+        if value <= 0.3:
+            return {
+                "level": "Low",
+                "class": "low"
+            }
+
+        elif value <= 1.5:
+            return {
+                "level": "Moderate",
+                "class": "moderate"
+            }
+
+        return {
+            "level": "High",
+            "class": "high"
+        }
+
+    if nutrient == "protein":
+
+        if value >= 10:
+            return {
+                "level": "High",
+                "class": "high"
+            }
+
+        elif value >= 5:
+            return {
+                "level": "Moderate",
+                "class": "moderate"
+            }
+
+        return {
+            "level": "Low",
+            "class": "low"
+        }
+
+    return {
+        "level": "Not available",
+        "class": "neutral"
+    }
+
+
+# =========================================================
+# PROGRESS BAR
+# =========================================================
+
+def progress_bar(value, nutrient):
+
+    value = safe_number(value)
+
+    maximums = {
+        "energy": 700,
+        "sugar": 25,
+        "fat": 30,
+        "protein": 20,
+        "salt": 3
+    }
+
+    maximum = maximums.get(
+        nutrient,
+        100
+    )
+
+    percent = (value / maximum) * 100
+
+    percent = max(
+        0,
+        min(percent, 100)
+    )
+
+    if nutrient == "energy":
+
+        if value <= 200:
+            level_class = "low"
+
+        elif value <= 500:
+            level_class = "moderate"
+
+        else:
+            level_class = "high"
+
+    else:
+
+        level_class = nutrition_level(
+            value,
+            nutrient
+        )["class"]
+
+    return {
+
+        "percent": round(
+            percent,
+            1
+        ),
+
+        "class": level_class
+
+    }
+
+
+# =========================================================
+# INGREDIENT ORDER
+# =========================================================
+
+def get_ingredient_order(ingredients):
+
+    if not ingredients:
+        return []
+
+    text = str(ingredients)
+
+    text = text.replace(
+        ";",
+        ","
+    )
+
+    parts = text.split(",")
 
     result = []
 
-    for category, keywords in CATEGORY_KEYWORDS.items():
+    for part in parts:
 
-        matches = []
+        part = part.strip()
 
-        for ingredient in ingredients:
-
-            normalized = normalize_ingredient(
-                ingredient
-            )
-
-            for keyword in keywords:
-
-                if normalize_ingredient(keyword) in normalized:
-
-                    if ingredient not in matches:
-                        matches.append(ingredient)
-
-                    break
-
-        if matches:
-
-            percentage = min(
-                100,
-                max(
-                    15,
-                    len(matches) * 25
-                )
-            )
-
-            result.append({
-                "name": category,
-                "ingredients": matches,
-                "count": len(matches),
-                "percentage": percentage,
-            })
+        if part:
+            result.append(part)
 
     return result
 
 
-# ============================================================
-# NUTRITION HELPERS
-# ============================================================
+# =========================================================
+# INGREDIENT CATEGORIES
+# =========================================================
 
-def safe_float(value):
+def get_ingredient_categories(ingredients):
 
-    try:
+    if not ingredients:
+        return []
 
-        if value is None:
-            return None
+    text = str(
+        ingredients
+    ).lower()
 
-        if isinstance(value, bool):
-            return None
+    categories_data = {
 
-        if isinstance(value, str):
+        "🌾 Cereals / Grains": [
+            "wheat",
+            "flour",
+            "rice",
+            "maida",
+            "atta",
+            "corn",
+            "barley",
+            "semolina",
+            "suji",
+            "sooji",
+            "rava",
+            "oat",
+            "oats"
+        ],
 
-            value = (
-                value
-                .replace(",", ".")
-                .replace("g", "")
-                .replace("kcal", "")
-                .strip()
-            )
+        "🍬 Sugars / Sweeteners": [
+            "sugar",
+            "glucose",
+            "fructose",
+            "syrup",
+            "maltose",
+            "dextrose",
+            "sucrose",
+            "honey",
+            "sweetener"
+        ],
 
-        return float(value)
+        "🫒 Oils / Fats": [
+            "oil",
+            "fat",
+            "butter",
+            "palm",
+            "sunflower",
+            "vegetable oil",
+            "coconut oil",
+            "olive oil",
+            "canola oil"
+        ],
 
-    except Exception:
+        "🧂 Salt / Minerals": [
+            "salt",
+            "sodium",
+            "potassium"
+        ],
 
-        return None
+        "🌿 Spices / Herbs": [
+            "spice",
+            "spices",
+            "pepper",
+            "chilli",
+            "turmeric",
+            "cumin",
+            "coriander",
+            "ginger",
+            "garlic",
+            "cinnamon"
+        ],
 
+        "🧪 Additives": [
+            "preservative",
+            "emulsifier",
+            "stabilizer",
+            "colour",
+            "color",
+            "flavour",
+            "flavor",
+            "acidity regulator",
+            "thickener",
+            "raising agent"
+        ]
+    }
 
-def get_nutrient(nutrients, *keys):
+    categories = []
 
-    for key in keys:
+    for category, keywords in categories_data.items():
 
-        value = nutrients.get(key)
+        found = []
 
-        if value is not None:
+        for keyword in keywords:
 
-            converted = safe_float(value)
+            if keyword in text:
+                found.append(keyword)
 
-            if converted is not None:
-                return converted
+        if found:
 
-    return None
+            categories.append({
 
+                "icon": category.split()[0],
 
-def nutrition_level(value, low, high):
+                "title": category[2:],
 
-    if value is None:
-        return "neutral"
-
-    if value < low:
-        return "low"
-
-    if value < high:
-        return "medium"
-
-    return "high"
-
-
-# ============================================================
-# NUTRITION
-# ============================================================
-
-def build_nutrition(product):
-
-    nutrients = product.get(
-        "nutriments",
-        {}
-    ) or {}
-
-    energy = get_nutrient(
-        nutrients,
-        "energy-kcal_100g",
-        "energy-kcal"
-    )
-
-    fat = get_nutrient(
-        nutrients,
-        "fat_100g",
-        "fat"
-    )
-
-    saturated = get_nutrient(
-        nutrients,
-        "saturated-fat_100g",
-        "saturated-fat"
-    )
-
-    carbohydrates = get_nutrient(
-        nutrients,
-        "carbohydrates_100g",
-        "carbohydrates"
-    )
-
-    sugars = get_nutrient(
-        nutrients,
-        "sugars_100g",
-        "sugars"
-    )
-
-    fiber = get_nutrient(
-        nutrients,
-        "fiber_100g",
-        "fiber"
-    )
-
-    proteins = get_nutrient(
-        nutrients,
-        "proteins_100g",
-        "proteins"
-    )
-
-    salt = get_nutrient(
-        nutrients,
-        "salt_100g",
-        "salt"
-    )
-
-    sodium = get_nutrient(
-        nutrients,
-        "sodium_100g",
-        "sodium"
-    )
-
-    # Salt fallback
-    if salt is None and sodium is not None:
-
-        salt = sodium * 2.5
-
-    items = [
-
-        {
-            "name": "Energy",
-            "icon": "⚡",
-            "value": energy,
-            "unit": "kcal",
-            "level": (
-                "low"
-                if energy is not None and energy < 150
-                else "medium"
-                if energy is not None and energy < 400
-                else "high"
-                if energy is not None
-                else "neutral"
-            ),
-        },
-
-        {
-            "name": "Fat",
-            "icon": "🥑",
-            "value": fat,
-            "unit": "g",
-            "level": nutrition_level(
-                fat,
-                3,
-                17.5
-            ),
-        },
-
-        {
-            "name": "Saturated Fat",
-            "icon": "🧈",
-            "value": saturated,
-            "unit": "g",
-            "level": nutrition_level(
-                saturated,
-                1.5,
-                5
-            ),
-        },
-
-        {
-            "name": "Carbohydrates",
-            "icon": "🌾",
-            "value": carbohydrates,
-            "unit": "g",
-            "level": nutrition_level(
-                carbohydrates,
-                10,
-                50
-            ),
-        },
-
-        {
-            "name": "Sugars",
-            "icon": "🍬",
-            "value": sugars,
-            "unit": "g",
-            "level": nutrition_level(
-                sugars,
-                5,
-                22.5
-            ),
-        },
-
-        {
-            "name": "Protein",
-            "icon": "💪",
-            "value": proteins,
-            "unit": "g",
-            "level": (
-                "high"
-                if proteins is not None and proteins >= 10
-                else "medium"
-                if proteins is not None and proteins >= 5
-                else "low"
-                if proteins is not None
-                else "neutral"
-            ),
-        },
-
-        {
-            "name": "Fibre",
-            "icon": "🌿",
-            "value": fiber,
-            "unit": "g",
-            "level": (
-                "high"
-                if fiber is not None and fiber >= 6
-                else "medium"
-                if fiber is not None and fiber >= 3
-                else "low"
-                if fiber is not None
-                else "neutral"
-            ),
-        },
-
-        {
-            "name": "Salt",
-            "icon": "🧂",
-            "value": salt,
-            "unit": "g",
-            "level": nutrition_level(
-                salt,
-                0.3,
-                1.5
-            ),
-        },
-    ]
-
-    for item in items:
-
-        value = item["value"]
-
-        if value is None:
-
-            item["display"] = "Not available"
-
-        else:
-
-            if abs(value - round(value)) < 0.01:
-
-                display_value = int(
-                    round(value)
+                "ingredients": list(
+                    dict.fromkeys(found)
                 )
 
-            else:
+            })
 
-                display_value = round(
-                    value,
-                    1
-                )
-
-            item["display"] = (
-                f"{display_value} "
-                f"{item['unit']}"
-            )
-
-    return items
+    return categories
 
 
-# ============================================================
-# NUTRITION INDICATORS
-# ============================================================
+# =========================================================
+# INGREDIENT DETECTIVE
+# =========================================================
 
-def build_indicators(product):
+def decode_ingredients(ingredients):
 
-    nutrients = product.get(
-        "nutriments",
-        {}
-    ) or {}
+    if not ingredients:
+        return []
 
-    sugar = get_nutrient(
-        nutrients,
-        "sugars_100g",
-        "sugars"
+    text = str(
+        ingredients
+    ).lower()
+
+    ingredient_guide = {
+
+        "sugar": (
+            "🍬 Sugar",
+            "A sweetening ingredient that contributes to the product's sugar content."
+        ),
+
+        "glucose": (
+            "🍬 Glucose",
+            "A simple sugar used as a carbohydrate and sweetening ingredient."
+        ),
+
+        "dextrose": (
+            "🍬 Dextrose",
+            "A form of glucose commonly used as a sweetener and carbohydrate source."
+        ),
+
+        "fructose": (
+            "🍯 Fructose",
+            "A naturally occurring simple sugar that provides sweetness."
+        ),
+
+        "sucrose": (
+            "🍬 Sucrose",
+            "Common table sugar composed of glucose and fructose."
+        ),
+
+        "syrup": (
+            "🍯 Syrup",
+            "A sweetening ingredient commonly used to add sweetness and texture."
+        ),
+
+        "honey": (
+            "🍯 Honey",
+            "A naturally derived sweetener produced by bees."
+        ),
+
+        "salt": (
+            "🧂 Salt",
+            "Used mainly for flavour and contributes sodium to the diet."
+        ),
+
+        "sodium": (
+            "🧂 Sodium",
+            "A mineral that contributes to the sodium content of food."
+        ),
+
+        "citric acid": (
+            "🍋 Citric Acid",
+            "Used to control acidity and provide a sour taste."
+        ),
+
+        "acidity regulator": (
+            "⚗️ Acidity Regulator",
+            "Used to control and maintain food acidity or pH."
+        ),
+
+        "vegetable oil": (
+            "🫒 Vegetable Oil",
+            "Plant-derived fat used for texture, cooking and flavour."
+        ),
+
+        "palm oil": (
+            "🌴 Palm Oil",
+            "Vegetable oil commonly used for texture and stability."
+        ),
+
+        "sunflower oil": (
+            "🌻 Sunflower Oil",
+            "Plant-based oil used as a fat source and for texture."
+        ),
+
+        "coconut oil": (
+            "🥥 Coconut Oil",
+            "Plant-based fat used for texture and flavour."
+        ),
+
+        "olive oil": (
+            "🫒 Olive Oil",
+            "Plant-derived oil commonly used as a source of dietary fat."
+        ),
+
+        "butter": (
+            "🧈 Butter",
+            "Dairy fat used to provide flavour and texture."
+        ),
+
+        "milk powder": (
+            "🥛 Milk Powder",
+            "Used to provide dairy solids, protein and flavour."
+        ),
+
+        "milk": (
+            "🥛 Milk",
+            "A dairy ingredient that can provide protein and flavour."
+        ),
+
+        "whey protein": (
+            "🥛 Whey Protein",
+            "A protein ingredient derived from milk."
+        ),
+
+        "whey": (
+            "🥛 Whey",
+            "A milk-derived ingredient containing proteins and other milk components."
+        ),
+
+        "casein": (
+            "🥛 Casein",
+            "A milk protein used for nutritional and functional properties."
+        ),
+
+        "lactose": (
+            "🥛 Lactose",
+            "The naturally occurring sugar found in milk and dairy products."
+        ),
+
+        "cream": (
+            "🥛 Cream",
+            "A dairy ingredient containing milk fat and used for flavour and texture."
+        ),
+
+        "cheese": (
+            "🧀 Cheese",
+            "A dairy product used for flavour, texture and protein."
+        ),
+
+        "curd": (
+            "🥛 Curd",
+            "A fermented dairy ingredient containing milk components."
+        ),
+
+        "ghee": (
+            "🧈 Ghee",
+            "Clarified dairy fat used for flavour and cooking."
+        ),
+
+        "soy lecithin": (
+            "🫘 Soy Lecithin",
+            "A soy-derived emulsifier used to help ingredients remain evenly mixed."
+        ),
+
+        "lecithin": (
+            "🔬 Lecithin",
+            "An emulsifier that helps ingredients such as oil and water remain mixed."
+        ),
+
+        "emulsifier": (
+            "🔬 Emulsifier",
+            "Helps ingredients such as oil and water remain mixed."
+        ),
+
+        "sodium benzoate": (
+            "🧪 Sodium Benzoate",
+            "A preservative used to help slow microbial spoilage."
+        ),
+
+        "potassium sorbate": (
+            "🧪 Potassium Sorbate",
+            "A preservative used to help control mould and yeast growth."
+        ),
+
+        "preservative": (
+            "🧪 Preservative",
+            "Used to help slow spoilage and extend shelf life."
+        ),
+
+        "xanthan gum": (
+            "⚗️ Xanthan Gum",
+            "A thickener and stabilizer used to improve texture."
+        ),
+
+        "guar gum": (
+            "⚗️ Guar Gum",
+            "A thickening agent used to improve texture and consistency."
+        ),
+
+        "modified starch": (
+            "🌽 Modified Starch",
+            "Used to improve thickness, texture and stability."
+        ),
+
+        "starch": (
+            "🌽 Starch",
+            "A carbohydrate commonly used for thickness and texture."
+        ),
+
+        "stabilizer": (
+            "⚗️ Stabilizer",
+            "Helps maintain the texture and consistency of the product."
+        ),
+
+        "thickener": (
+            "🧪 Thickener",
+            "Used to increase thickness and improve texture."
+        ),
+
+        "monosodium glutamate": (
+            "🧂 Monosodium Glutamate",
+            "A flavour enhancer used to increase savoury or umami taste."
+        ),
+
+        "msg": (
+            "🧂 MSG",
+            "A flavour enhancer used to increase savoury or umami taste."
+        ),
+
+        "natural flavour": (
+            "🌿 Natural Flavour",
+            "Used to provide or enhance flavour using flavouring substances from natural sources."
+        ),
+
+        "natural flavor": (
+            "🌿 Natural Flavour",
+            "Used to provide or enhance flavour using flavouring substances from natural sources."
+        ),
+
+        "flavour": (
+            "👅 Flavouring",
+            "Added to provide or enhance flavour."
+        ),
+
+        "flavor": (
+            "👅 Flavouring",
+            "Added to provide or enhance flavour."
+        ),
+
+        "colour": (
+            "🎨 Food Colour",
+            "Used to provide or restore colour."
+        ),
+
+        "color": (
+            "🎨 Food Colour",
+            "Used to provide or restore colour."
+        ),
+
+        "wheat flour": (
+            "🌾 Wheat Flour",
+            "Used to provide structure and bulk in food products."
+        ),
+
+        "whole wheat": (
+            "🌾 Whole Wheat",
+            "A whole-grain wheat ingredient containing the grain components."
+        ),
+
+        "wheat": (
+            "🌾 Wheat",
+            "A cereal grain commonly used as a carbohydrate source."
+        ),
+
+        "semolina": (
+            "🌾 Semolina",
+            "A coarse flour usually made from durum wheat."
+        ),
+
+        "suji": (
+            "🌾 Suji",
+            "A coarse wheat-based flour commonly used in Indian foods."
+        ),
+
+        "sooji": (
+            "🌾 Sooji",
+            "A coarse wheat-based flour commonly used in Indian foods."
+        ),
+
+        "rava": (
+            "🌾 Rava",
+            "A coarse wheat-based flour commonly used in Indian foods."
+        ),
+
+        "rice": (
+            "🍚 Rice",
+            "A cereal grain and carbohydrate source."
+        ),
+
+        "corn": (
+            "🌽 Corn",
+            "A cereal grain used as a carbohydrate source."
+        ),
+
+        "barley": (
+            "🌾 Barley",
+            "A cereal grain containing carbohydrates and other nutrients."
+        ),
+
+        "oats": (
+            "🌾 Oats",
+            "A cereal grain that provides carbohydrates and dietary fibre."
+        ),
+
+        "almond": (
+            "🌰 Almond",
+            "A tree nut commonly used for flavour, texture and nutrients."
+        ),
+
+        "cashew": (
+            "🌰 Cashew",
+            "A tree nut used as a food ingredient and source of fat and protein."
+        ),
+
+        "walnut": (
+            "🌰 Walnut",
+            "A tree nut containing fats, protein and other nutrients."
+        ),
+
+        "pistachio": (
+            "🌰 Pistachio",
+            "A tree nut used for flavour and texture."
+        ),
+
+        "hazelnut": (
+            "🌰 Hazelnut",
+            "A tree nut commonly used for flavour and texture."
+        ),
+
+        "peanut": (
+            "🥜 Peanut",
+            "A legume commonly used as a source of protein and fat."
+        ),
+
+        "groundnut": (
+            "🥜 Groundnut",
+            "Another name for peanut, commonly used as a source of protein and fat."
+        ),
+
+        "soybean": (
+            "🫘 Soybean",
+            "A legume used as a source of plant protein and other nutrients."
+        ),
+
+        "soy": (
+            "🫘 Soy",
+            "A soybean-derived ingredient used as a protein or functional ingredient."
+        ),
+
+        "soya": (
+            "🫘 Soya",
+            "A soybean-derived ingredient used as a protein or functional ingredient."
+        ),
+
+        "sesame": (
+            "🌱 Sesame",
+            "A seed commonly used for flavour, texture and dietary fat."
+        ),
+
+        "mustard": (
+            "🌿 Mustard",
+            "A seed or spice used mainly for flavour."
+        ),
+
+        "albumin": (
+            "🥚 Albumin",
+            "A protein that can be derived from egg white."
+        ),
+
+        "egg": (
+            "🥚 Egg",
+            "An animal-derived ingredient that provides protein and functional properties."
+        ),
+
+        "cocoa powder": (
+            "🍫 Cocoa Powder",
+            "Ground cocoa solids used to provide chocolate flavour and colour."
+        ),
+
+        "cocoa": (
+            "🍫 Cocoa",
+            "A cocoa-derived ingredient used to provide chocolate flavour and colour."
+        ),
+
+        "chocolate": (
+            "🍫 Chocolate",
+            "A cocoa-based ingredient commonly combined with sugar and other ingredients."
+        ),
+
+        "vanilla": (
+            "🌿 Vanilla",
+            "A flavouring ingredient used to provide a characteristic sweet aroma and taste."
+        ),
+
+        "cinnamon": (
+            "🌿 Cinnamon",
+            "A spice used to provide aroma and flavour."
+        ),
+
+        "pepper": (
+            "🌿 Pepper",
+            "A spice used primarily to provide flavour and aroma."
+        ),
+
+        "turmeric": (
+            "🌿 Turmeric",
+            "A spice commonly used for flavour and natural yellow colour."
+        ),
+
+        "cumin": (
+            "🌿 Cumin",
+            "A spice used to provide aroma and flavour."
+        ),
+
+        "coriander": (
+            "🌿 Coriander",
+            "An herb or spice used to provide flavour and aroma."
+        ),
+
+        "chilli": (
+            "🌶️ Chilli",
+            "A spice or pepper ingredient used to provide heat and flavour."
+        ),
+
+        "ginger": (
+            "🌿 Ginger",
+            "A plant ingredient commonly used for flavour and aroma."
+        ),
+
+        "garlic": (
+            "🧄 Garlic",
+            "A plant ingredient commonly used to provide flavour and aroma."
+        )
+    }
+
+    result = []
+
+    already_added = set()
+
+    keywords = sorted(
+        ingredient_guide.keys(),
+        key=len,
+        reverse=True
     )
 
-    saturated = get_nutrient(
-        nutrients,
-        "saturated-fat_100g",
-        "saturated-fat"
-    )
+    for keyword in keywords:
 
-    salt = get_nutrient(
-        nutrients,
-        "salt_100g",
-        "salt"
-    )
-
-    if salt is None:
-
-        sodium = get_nutrient(
-            nutrients,
-            "sodium_100g",
-            "sodium"
+        pattern = (
+            r"(?<![a-z])"
+            + re.escape(keyword)
+            + r"(?![a-z])"
         )
 
-        if sodium is not None:
+        if re.search(pattern, text):
 
-            salt = sodium * 2.5
+            name, explanation = ingredient_guide[
+                keyword
+            ]
 
-    fiber = get_nutrient(
-        nutrients,
-        "fiber_100g",
-        "fiber"
+            if name not in already_added:
+
+                result.append({
+
+                    "name": name,
+
+                    "explanation": explanation
+
+                })
+
+                already_added.add(name)
+
+    return result
+
+
+# =========================================================
+# DISEASE / HEALTH CAUTIONS
+# =========================================================
+
+def disease_cautions(product):
+
+    cautions = []
+
+    sugar = safe_number(
+        product.get("sugar")
     )
 
-    protein = get_nutrient(
-        nutrients,
-        "proteins_100g",
-        "proteins"
+    salt = safe_number(
+        product.get("salt")
     )
 
-    def indicator(
-        name,
-        value,
-        max_value,
-        low,
-        medium,
-        icon
-    ):
+    fat = safe_number(
+        product.get("fat")
+    )
 
-        if value is None:
+    allergens = product.get(
+        "detected_allergens",
+        []
+    )
 
-            return {
-                "name": name,
-                "value": "Not available",
-                "percentage": 3,
-                "level": "neutral",
-                "icon": icon,
+    if sugar > 15:
+
+        cautions.append({
+
+            "icon": "⚠️",
+
+            "title": "Diabetes Caution",
+
+            "text":
+                "This product contains a high amount of sugar per 100 g. People with diabetes may need to limit or carefully portion high-sugar foods.",
+
+            "class": "danger"
+
+        })
+
+    if salt > 1.5:
+
+        cautions.append({
+
+            "icon": "⚠️",
+
+            "title": "Blood Pressure / Hypertension Caution",
+
+            "text":
+                "This product contains a relatively high amount of salt per 100 g. People managing high blood pressure may need to monitor their sodium and salt intake.",
+
+            "class": "danger"
+
+        })
+
+    if fat > 17.5:
+
+        cautions.append({
+
+            "icon": "⚠️",
+
+            "title": "Cardiovascular Health Caution",
+
+            "text":
+                "This product is relatively high in total fat per 100 g. Overall dietary pattern and the type of fat are important when considering cardiovascular health.",
+
+            "class": "caution"
+
+        })
+
+    if allergens:
+
+        names = ", ".join(
+            item["name"]
+            for item in allergens
+        )
+
+        cautions.insert(
+
+            0,
+
+            {
+
+                "icon": "🚨",
+
+                "title": "ALLERGEN ALERT",
+
+                "text":
+                    "Potential allergens detected: "
+                    + names
+                    + ". People with a relevant food allergy should check the package label and allergen declaration carefully.",
+
+                "class": "danger"
+
             }
 
-        percentage = min(
-            100,
-            max(
-                3,
-                round(
-                    (value / max_value) * 100
-                )
-            )
         )
 
-        if value < low:
-
-            level = "low"
-
-        elif value < medium:
-
-            level = "medium"
-
-        else:
-
-            level = "high"
-
-        return {
-            "name": name,
-            "value": f"{round(value, 1)} g",
-            "percentage": percentage,
-            "level": level,
-            "icon": icon,
-        }
-
-    return [
-
-        indicator(
-            "Sugar",
-            sugar,
-            30,
-            5,
-            15,
-            "🍬"
-        ),
-
-        indicator(
-            "Saturated Fat",
-            saturated,
-            15,
-            1.5,
-            5,
-            "🧈"
-        ),
-
-        indicator(
-            "Salt",
-            salt,
-            3,
-            0.3,
-            1.5,
-            "🧂"
-        ),
-
-        indicator(
-            "Fibre",
-            fiber,
-            10,
-            3,
-            6,
-            "🌿"
-        ),
-
-        indicator(
-            "Protein",
-            protein,
-            25,
-            5,
-            10,
-            "💪"
-        ),
-    ]
+    return cautions
 
 
-# ============================================================
+# =========================================================
+# SMART HIGHLIGHTS
+# =========================================================
+
+def make_smart_highlights(product):
+
+    highlights = []
+
+    sugar = safe_number(
+        product.get("sugar")
+    )
+
+    fat = safe_number(
+        product.get("fat")
+    )
+
+    protein = safe_number(
+        product.get("protein")
+    )
+
+    salt = safe_number(
+        product.get("salt")
+    )
+
+    allergens = product.get(
+        "detected_allergens",
+        []
+    )
+
+    if sugar > 15:
+
+        highlights.append({
+
+            "icon": "🍬",
+
+            "title": "High Sugar",
+
+            "text":
+                "Sugar is relatively high per 100 g."
+
+        })
+
+    elif 0 < sugar <= 5:
+
+        highlights.append({
+
+            "icon": "✅",
+
+            "title": "Lower Sugar",
+
+            "text":
+                "Sugar is relatively low per 100 g."
+
+        })
+
+    if fat > 17.5:
+
+        highlights.append({
+
+            "icon": "🫒",
+
+            "title": "Higher Fat",
+
+            "text":
+                "Total fat is relatively high per 100 g."
+
+        })
+
+    if protein >= 10:
+
+        highlights.append({
+
+            "icon": "💪",
+
+            "title": "Higher Protein",
+
+            "text":
+                "Protein is relatively high per 100 g."
+
+        })
+
+    if salt > 1.5:
+
+        highlights.append({
+
+            "icon": "🧂",
+
+            "title": "High Salt",
+
+            "text":
+                "Salt is relatively high per 100 g."
+
+        })
+
+    if allergens:
+
+        names = ", ".join(
+            item["name"]
+            for item in allergens
+        )
+
+        highlights.append({
+
+            "icon": "🚨",
+
+            "title": "Allergens Detected",
+
+            "text": names
+
+        })
+
+    if not highlights:
+
+        highlights.append({
+
+            "icon": "🔎",
+
+            "title": "Product Analysis",
+
+            "text":
+                "Review the nutrition and ingredient information below."
+
+        })
+
+    return highlights
+
+
+# =========================================================
 # PRODUCT SCORE
-# ============================================================
+# =========================================================
 
-def calculate_score(
-    product,
-    ingredients,
-    allergens
-):
+def calculate_score(product):
 
-    score = 70
+    score = 100
 
-    nutrients = product.get(
-        "nutriments",
-        {}
-    ) or {}
-
-    sugar = get_nutrient(
-        nutrients,
-        "sugars_100g",
-        "sugars"
+    sugar = safe_number(
+        product.get("sugar")
     )
 
-    saturated = get_nutrient(
-        nutrients,
-        "saturated-fat_100g",
-        "saturated-fat"
+    fat = safe_number(
+        product.get("fat")
     )
 
-    salt = get_nutrient(
-        nutrients,
-        "salt_100g",
-        "salt"
+    salt = safe_number(
+        product.get("salt")
     )
 
-    fiber = get_nutrient(
-        nutrients,
-        "fiber_100g",
-        "fiber"
+    protein = safe_number(
+        product.get("protein")
     )
 
-    protein = get_nutrient(
-        nutrients,
-        "proteins_100g",
-        "proteins"
-    )
+    if sugar > 15:
+        score -= 20
 
-    if fiber is not None and fiber >= 3:
-        score += 7
+    elif sugar > 5:
+        score -= 8
 
-    if protein is not None and protein >= 5:
+    if fat > 17.5:
+        score -= 15
+
+    elif fat > 3:
+        score -= 5
+
+    if salt > 1.5:
+        score -= 15
+
+    elif salt > 0.3:
+        score -= 5
+
+    if protein >= 10:
         score += 5
-
-    if sugar is not None:
-
-        if sugar >= 22.5:
-            score -= 15
-
-        elif sugar >= 15:
-            score -= 8
-
-    if saturated is not None:
-
-        if saturated >= 5:
-            score -= 10
-
-        elif saturated >= 1.5:
-            score -= 4
-
-    if salt is not None:
-
-        if salt >= 1.5:
-            score -= 10
-
-        elif salt >= 0.3:
-            score -= 4
 
     score = max(
         0,
-        min(
-            100,
-            score
-        )
+        min(score, 100)
     )
 
     if score >= 75:
 
         label = "Good"
-
-        description = (
-            "The available nutrition information gives this "
-            "product a relatively favourable overall profile."
-        )
-
         css = "good"
 
     elif score >= 50:
 
         label = "Moderate"
-
-        description = (
-            "Some nutritional factors deserve attention when "
-            "considering this product."
-        )
-
         css = "moderate"
 
     else:
 
         label = "Needs Attention"
-
-        description = (
-            "Several available nutritional factors are relatively "
-            "high or the overall profile needs closer attention."
-        )
-
         css = "attention"
 
     return {
-        "score": score,
+
+        "value": score,
+
         "label": label,
-        "description": description,
-        "css": css,
+
+        "class": css
+
     }
 
 
-# ============================================================
-# COMPLETE PRODUCT ANALYSIS
-# ============================================================
+# =========================================================
+# FINALIZE PRODUCT
+# =========================================================
 
-def analyze_product(
-    product,
-    barcode=None
-):
+def finalize_product(product):
 
-    ingredients = get_ingredient_list(
-        product
+    for nutrient in [
+        "energy",
+        "sugar",
+        "fat",
+        "protein",
+        "salt"
+    ]:
+
+        product[nutrient] = safe_number(
+            product.get(nutrient)
+        )
+
+    product["sugar_level"] = nutrition_level(
+        product["sugar"],
+        "sugar"
     )
 
-    ingredient_details = build_ingredient_order(
+    product["fat_level"] = nutrition_level(
+        product["fat"],
+        "fat"
+    )
+
+    product["protein_level"] = nutrition_level(
+        product["protein"],
+        "protein"
+    )
+
+    product["salt_level"] = nutrition_level(
+        product["salt"],
+        "salt"
+    )
+
+    ingredients = product.get(
+        "ingredients",
+        ""
+    ) or ""
+
+    declared_allergens = product.get(
+        "allergens",
+        ""
+    ) or ""
+
+    allergen_tags = product.get(
+        "allergen_tags",
+        ""
+    ) or ""
+
+    product["detected_allergens"] = detect_allergens(
+
+        ingredients,
+
+        declared_allergens,
+
+        allergen_tags
+
+    )
+
+    product["ingredient_order"] = get_ingredient_order(
         ingredients
     )
 
-    allergens = detect_allergens(
-        ingredients,
-        product
-    )
-
-    categories = build_categories(
+    product["ingredient_categories"] = get_ingredient_categories(
         ingredients
     )
 
-    nutrition = build_nutrition(
+    product["decoded_ingredients"] = decode_ingredients(
+        ingredients
+    )
+
+    product["smart_highlights"] = make_smart_highlights(
         product
     )
 
-    indicators = build_indicators(
+    product["disease_cautions"] = disease_cautions(
         product
     )
 
-    score = calculate_score(
-        product,
-        ingredients,
-        allergens
+    product["score"] = calculate_score(
+        product
     )
 
-    # --------------------------------------------------------
-    # Product identity
-    # --------------------------------------------------------
-
-    product_name = (
-        product.get("product_name")
-        or product.get("product_name_en")
-        or product.get("product_name_fr")
-        or product.get("generic_name")
-        or product.get("generic_name_en")
-        or "Unknown Product"
+    product["energy_bar"] = progress_bar(
+        product["energy"],
+        "energy"
     )
 
-    brand = (
-        product.get("brands")
-        or product.get("brand_owner")
-        or "Brand not available"
+    product["sugar_bar"] = progress_bar(
+        product["sugar"],
+        "sugar"
     )
 
-    image = (
-        product.get("image_front_url")
-        or product.get("image_front_small_url")
-        or product.get("image_url")
-        or product.get("image_small_url")
-        or ""
+    product["fat_bar"] = progress_bar(
+        product["fat"],
+        "fat"
     )
 
-    product_code = (
-        clean_barcode(barcode)
-        or clean_barcode(
-            product.get("code")
-        )
+    product["protein_bar"] = progress_bar(
+        product["protein"],
+        "protein"
     )
 
-    ingredients_text = (
-        product.get("ingredients_text")
-        or product.get("ingredients_text_en")
-        or product.get("ingredients_text_fr")
-        or ""
+    product["salt_bar"] = progress_bar(
+        product["salt"],
+        "salt"
     )
 
-    return {
-
-        "product": product,
-
-        "product_name": product_name,
-
-        "brand": brand,
-
-        "image": image,
-
-        "barcode": product_code,
-
-        "ingredients": ingredients,
-
-        "ingredients_text": ingredients_text,
-
-        "ingredient_details": ingredient_details,
-
-        "ingredient_order": ingredient_details,
-
-        "allergens": allergens,
-
-        "detected_allergens": allergens,
-
-        "categories": categories,
-
-        "ingredient_categories": categories,
-
-        "nutrition": nutrition,
-
-        "nutrition_items": nutrition,
-
-        "indicators": indicators,
-
-        "nutrition_indicators": indicators,
-
-        "score": score,
-
-        "analysis": score,
-
-        "quantity": product.get(
-            "quantity",
-            ""
-        ),
-
-        "serving_size": product.get(
-            "serving_size",
-            ""
-        ),
-
-        "countries": product.get(
-            "countries",
-            ""
-        ),
-
-        "categories_text": product.get(
-            "categories",
-            ""
-        ),
-
-        "brands": brand,
-
-        "nutriscore": (
-            product.get(
-                "nutriscore_grade"
-            )
-            or product.get(
-                "nutriscore_score"
-            )
-            or "N/A"
-        ),
-
-        "nova": (
-            product.get(
-                "nova_group"
-            )
-            or "N/A"
-        ),
-    }
+    return product
 
 
-# ============================================================
-# ERROR CONTEXT
-# ============================================================
+# =========================================================
+# OPEN FOOD FACTS
+# =========================================================
 
-def error_context(
-    message,
-    barcode=""
-):
+def get_from_open_food_facts(barcode):
 
-    return {
-        "error": message,
-        "barcode": barcode,
-    }
+    print()
+    print("=" * 60)
+    print("DATABASE 1: OPEN FOOD FACTS")
+    print("Original barcode:", barcode)
 
-
-# ============================================================
-# HOME
-# ============================================================
-
-@app.route("/", methods=["GET"])
-def index():
-
-    return render_template(
-        "index.html",
-        product=None,
-        result=None,
-        error=None,
-        comparison=None,
+    barcodes = normalize_barcodes(
+        barcode
     )
 
+    print(
+        "Barcode variations:",
+        barcodes
+    )
 
-# ============================================================
-# BARCODE SEARCH
-# ============================================================
+    for code in barcodes:
 
-@app.route("/search", methods=["POST"])
-def search():
-
-    barcode = ""
-
-    try:
-
-        # ----------------------------------------------------
-        # Accept multiple possible field names
-        # ----------------------------------------------------
-
-        barcode = (
-            request.form.get("barcode")
-            or request.form.get("code")
-            or request.form.get("product_code")
-            or request.form.get("barcode_input")
-            or ""
+        print(
+            "Searching OFF barcode:",
+            code
         )
 
-        barcode = clean_barcode(
-            barcode
-        )
+        try:
 
-        print("=" * 60)
-        print("PRODUCT SEARCH")
-        print("Barcode:", barcode)
-        print("=" * 60)
-
-        if not barcode:
-
-            return render_template(
-                "index.html",
-                product=None,
-                result=None,
-                error="Please enter a valid barcode.",
-                comparison=None,
+            url = OFF_API.format(
+                code
             )
 
-        # ----------------------------------------------------
-        # Open Food Facts
-        # ----------------------------------------------------
+            response = requests.get(
 
-        product = lookup_openfoodfacts(
-            barcode
-        )
+                url,
 
-        # ----------------------------------------------------
-        # Product not found
-        # ----------------------------------------------------
+                headers=HEADERS,
 
-        if product is None:
+                timeout=15
+
+            )
 
             print(
-                "PRODUCT NOT FOUND:",
-                barcode
+                "OFF STATUS CODE:",
+                response.status_code
             )
 
-            return render_template(
-                "index.html",
-                product=None,
-                result=None,
-                error=(
-                    f"No product was found for barcode "
-                    f"{barcode}. Please check the barcode "
-                    f"and try again."
-                ),
-                comparison=None,
+            if response.status_code == 404:
+
+                print(
+                    "Barcode not found:",
+                    code
+                )
+
+                continue
+
+            response.raise_for_status()
+
+            data = response.json()
+
+        except requests.exceptions.RequestException as e:
+
+            print(
+                "Open Food Facts error:",
+                e
             )
+
+            continue
+
+        except ValueError:
+
+            print(
+                "Invalid Open Food Facts JSON."
+            )
+
+            continue
+
+        if data.get("status") != 1:
+
+            print(
+                "No product in Open Food Facts for:",
+                code
+            )
+
+            continue
+
+        raw = data.get(
+            "product",
+            {}
+        )
+
+        ingredients = raw.get(
+            "ingredients_text",
+            ""
+        ) or ""
+
+        declared_allergens = raw.get(
+            "allergens",
+            ""
+        ) or ""
+
+        allergen_tags = raw.get(
+            "allergens_tags",
+            []
+        ) or []
+
+        allergen_tags_text = " ".join(
+            str(item)
+            for item in allergen_tags
+        )
+
+        nutrition = raw.get(
+            "nutriments",
+            {}
+        ) or {}
+
+        energy = nutrition.get(
+            "energy-kcal_100g",
+            nutrition.get(
+                "energy-kcal",
+                0
+            )
+        )
+
+        sugar = nutrition.get(
+            "sugars_100g",
+            0
+        )
+
+        fat = nutrition.get(
+            "fat_100g",
+            0
+        )
+
+        protein = nutrition.get(
+            "proteins_100g",
+            0
+        )
+
+        salt = nutrition.get(
+            "salt_100g",
+            0
+        )
+
+        product = {
+
+            "name": raw.get(
+                "product_name",
+                "Unknown Product"
+            ),
+
+            "brands": raw.get(
+                "brands",
+                ""
+            ),
+
+            "barcode": code,
+
+            "image": raw.get(
+                "image_front_url",
+                ""
+            ),
+
+            "ingredients": ingredients,
+
+            "allergens": declared_allergens,
+
+            "allergen_tags": allergen_tags_text,
+
+            "energy": energy,
+
+            "sugar": sugar,
+
+            "fat": fat,
+
+            "protein": protein,
+
+            "salt": salt,
+
+            "source": "Open Food Facts",
+
+            "verified": True
+
+        }
+
+        product = finalize_product(
+            product
+        )
 
         print(
             "PRODUCT FOUND:",
-            product.get("product_name")
-            or product.get("product_name_en")
-            or "Unknown"
+            product["name"]
         )
 
-        # ----------------------------------------------------
-        # Analyze product
-        # ----------------------------------------------------
-
-        result = analyze_product(
-            product,
-            barcode
+        print(
+            "SOURCE:",
+            product["source"]
         )
 
-        # ----------------------------------------------------
-        # IMPORTANT:
-        # Send BOTH product and result.
-        # ----------------------------------------------------
+        return product
+
+    print(
+        "Product not found in Open Food Facts."
+    )
+
+    return None
+
+
+# =========================================================
+# USDA FOODDATA CENTRAL
+# =========================================================
+
+def get_from_usda(barcode):
+
+    print()
+    print("=" * 60)
+    print("DATABASE 2: USDA FOODDATA CENTRAL")
+    print("Searching barcode:", barcode)
+
+    try:
+
+        params = {
+
+            "api_key": USDA_API_KEY,
+
+            "query": barcode,
+
+            "pageSize": 10
+
+        }
+
+        response = requests.get(
+
+            USDA_API,
+
+            params=params,
+
+            timeout=15
+
+        )
+
+        print(
+            "USDA STATUS CODE:",
+            response.status_code
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+    except requests.exceptions.RequestException as e:
+
+        print(
+            "USDA connection error:",
+            e
+        )
+
+        return None
+
+    except ValueError:
+
+        print(
+            "Invalid USDA response."
+        )
+
+        return None
+
+    foods = data.get(
+        "foods",
+        []
+    )
+
+    if not foods:
+
+        print(
+            "No USDA result."
+        )
+
+        return None
+
+    food = foods[0]
+
+    nutrients = food.get(
+        "foodNutrients",
+        []
+    )
+
+    energy = 0
+    sugar = 0
+    fat = 0
+    protein = 0
+    salt = 0
+
+    for nutrient in nutrients:
+
+        name = str(
+            nutrient.get(
+                "nutrientName",
+                ""
+            )
+        ).lower()
+
+        value = safe_number(
+            nutrient.get(
+                "value",
+                0
+            )
+        )
+
+        if "energy" in name:
+
+            energy = value
+
+        elif "sugars, total" in name:
+
+            sugar = value
+
+        elif name == "total lipid (fat)":
+
+            fat = value
+
+        elif name == "protein":
+
+            protein = value
+
+        elif "sodium" in name:
+
+            # Sodium mg -> approximate salt g
+            salt = (
+                value * 2.5 / 1000
+            )
+
+    product = {
+
+        "name": food.get(
+            "description",
+            "Unknown Product"
+        ),
+
+        "brands": food.get(
+            "brandOwner",
+            ""
+        ),
+
+        "barcode": barcode,
+
+        "image": "",
+
+        "ingredients": food.get(
+            "ingredients",
+            ""
+        ) or "",
+
+        "allergens": "",
+
+        "allergen_tags": "",
+
+        "energy": energy,
+
+        "sugar": sugar,
+
+        "fat": fat,
+
+        "protein": protein,
+
+        "salt": salt,
+
+        "source": "USDA FoodData Central",
+
+        "verified": True
+
+    }
+
+    print(
+        "USDA PRODUCT FOUND:",
+        product["name"]
+    )
+
+    return finalize_product(
+        product
+    )
+
+
+# =========================================================
+# SEARCH PRODUCT
+# =========================================================
+
+def search_product(barcode):
+
+    barcode = str(
+        barcode
+    ).strip()
+
+    print()
+    print("=" * 60)
+    print("PRODUCTLENS SEARCH")
+    print("Barcode:", barcode)
+    print("=" * 60)
+
+    # -----------------------------------------
+    # DATABASE 1
+    # -----------------------------------------
+
+    product = get_from_open_food_facts(
+        barcode
+    )
+
+    if product:
+
+        print(
+            "SUCCESS: Product found in Open Food Facts."
+        )
+
+        return product
+
+    print(
+        "OFF: Product not found."
+    )
+
+    # -----------------------------------------
+    # DATABASE 2
+    # -----------------------------------------
+
+    print(
+        "Trying USDA FoodData Central..."
+    )
+
+    product = get_from_usda(
+        barcode
+    )
+
+    if product:
+
+        print(
+            "SUCCESS: Product found in USDA."
+        )
+
+        return product
+
+    print(
+        "USDA: Product not found."
+    )
+
+    return None
+
+
+# =========================================================
+# HOME
+# =========================================================
+
+@app.route("/")
+def home():
+
+    return render_template(
+        "index.html"
+    )
+
+
+# =========================================================
+# SEARCH
+# =========================================================
+
+@app.route(
+    "/search",
+    methods=["POST"]
+)
+def search():
+
+    barcode = request.form.get(
+        "barcode",
+        ""
+    ).strip()
+
+    if not barcode:
 
         return render_template(
+
             "index.html",
-            product=product,
-            result=result,
-            error=None,
-            comparison=None,
+
+            error="Please enter a barcode."
+
         )
 
-    except Exception as exc:
-
-        print("=" * 60)
-        print("SEARCH ERROR")
-        print(repr(exc))
-        print("=" * 60)
+    if not barcode.isdigit():
 
         return render_template(
+
             "index.html",
-            product=None,
-            result=None,
-            error=(
-                "The product could not be processed. "
-                "Please try the barcode again."
-            ),
-            comparison=None,
+
+            error="Barcode should contain numbers only."
+
         )
 
+    product = search_product(
+        barcode
+    )
 
-# ============================================================
-# MANUAL PRODUCT INPUT
-# ============================================================
+    if product:
+
+        return render_template(
+
+            "index.html",
+
+            product=product
+
+        )
+
+    return render_template(
+
+        "index.html",
+
+        show_manual_form=True,
+
+        missing_barcode=barcode,
+
+        error=
+            "Barcode recognized, but product information was not found in the available databases."
+
+    )
+
+
+# =========================================================
+# MANUAL ENTRY
+# =========================================================
 
 @app.route(
     "/manual",
@@ -2515,186 +2009,120 @@ def search():
 )
 def manual():
 
-    try:
+    barcode = request.form.get(
+        "barcode",
+        ""
+    ).strip()
 
-        product_name = (
-            request.form.get(
-                "product_name"
-            )
-            or request.form.get(
-                "name"
-            )
-            or "Manual Product"
-        )
+    name = request.form.get(
+        "name",
+        ""
+    ).strip()
 
-        ingredients_text = (
-            request.form.get(
-                "ingredients"
-            )
-            or request.form.get(
-                "ingredient_text"
-            )
-            or ""
-        )
+    brand = request.form.get(
+        "brand",
+        ""
+    ).strip()
 
-        calories = request.form.get(
-            "calories",
-            ""
-        )
+    ingredients = request.form.get(
+        "ingredients",
+        ""
+    ).strip()
 
-        fat = request.form.get(
-            "fat",
-            ""
-        )
+    allergens = request.form.get(
+        "allergens",
+        ""
+    ).strip()
 
-        saturated_fat = request.form.get(
-            "saturated_fat",
-            ""
-        )
-
-        carbohydrates = request.form.get(
-            "carbohydrates",
-            ""
-        )
-
-        sugars = request.form.get(
-            "sugars",
-            ""
-        )
-
-        protein = request.form.get(
-            "protein",
-            ""
-        )
-
-        fiber = request.form.get(
-            "fiber",
-            ""
-        )
-
-        salt = request.form.get(
-            "salt",
-            ""
-        )
-
-        ingredient_parts = re.split(
-            r",|;|\n",
-            ingredients_text
-        )
-
-        ingredient_parts = [
-            x.strip()
-            for x in ingredient_parts
-            if x.strip()
-        ]
-
-        product = {
-
-            "product_name": product_name,
-
-            "brands": request.form.get(
-                "brand",
-                "Manual Entry"
-            ),
-
-            "ingredients_text": ingredients_text,
-
-            "ingredients": [
-                {
-                    "text": x
-                }
-                for x in ingredient_parts
-            ],
-
-            "nutriments": {
-
-                "energy-kcal_100g":
-                    safe_float(calories),
-
-                "fat_100g":
-                    safe_float(fat),
-
-                "saturated-fat_100g":
-                    safe_float(
-                        saturated_fat
-                    ),
-
-                "carbohydrates_100g":
-                    safe_float(
-                        carbohydrates
-                    ),
-
-                "sugars_100g":
-                    safe_float(sugars),
-
-                "proteins_100g":
-                    safe_float(protein),
-
-                "fiber_100g":
-                    safe_float(fiber),
-
-                "salt_100g":
-                    safe_float(salt),
-            },
-        }
-
-        result = analyze_product(
-            product
-        )
-
-        return render_template(
-            "index.html",
-            product=product,
-            result=result,
-            error=None,
-            comparison=None,
-        )
-
-    except Exception as exc:
-
-        print(
-            "MANUAL ERROR:",
-            repr(exc)
-        )
-
-        return render_template(
-            "index.html",
-            product=None,
-            result=None,
-            error=(
-                "Unable to process the manual "
-                "product information."
-            ),
-            comparison=None,
-        )
-
-
-# ============================================================
-# COMPARISON HELPER
-# ============================================================
-
-def get_comparison_data(
-    product_a,
-    product_b
-):
-
-    a = analyze_product(
-        product_a
+    energy = request.form.get(
+        "energy",
+        0
     )
 
-    b = analyze_product(
-        product_b
+    sugar = request.form.get(
+        "sugar",
+        0
     )
 
-    return {
-        "product_a": a,
-        "product_b": b,
+    fat = request.form.get(
+        "fat",
+        0
+    )
+
+    protein = request.form.get(
+        "protein",
+        0
+    )
+
+    salt = request.form.get(
+        "salt",
+        0
+    )
+
+    if not name:
+
+        return render_template(
+
+            "index.html",
+
+            error="Product name is required.",
+
+            show_manual_form=True,
+
+            missing_barcode=barcode
+
+        )
+
+    product = {
+
+        "name": name,
+
+        "brands": brand,
+
+        "barcode": barcode,
+
+        "image": "",
+
+        "ingredients": ingredients,
+
+        "allergens": allergens,
+
+        "allergen_tags": "",
+
+        "energy": energy,
+
+        "sugar": sugar,
+
+        "fat": fat,
+
+        "protein": protein,
+
+        "salt": salt,
+
+        "source": "Manual Entry",
+
+        "verified": False
+
     }
 
+    product = finalize_product(
+        product
+    )
 
-# ============================================================
-# PRODUCT COMPARISON
-# ============================================================
+    return render_template(
+
+        "index.html",
+
+        product=product,
+
+        manual_success=True
+
+    )
+
+
+# =========================================================
+# COMPARE PRODUCTS
+# =========================================================
 
 @app.route(
     "/compare",
@@ -2702,192 +2130,221 @@ def get_comparison_data(
 )
 def compare():
 
-    try:
+    barcode1 = request.form.get(
+        "barcode1",
+        ""
+    ).strip()
 
-        barcode_a = clean_barcode(
-            request.form.get(
-                "barcode1"
-            )
-            or request.form.get(
-                "barcode_a"
-            )
-            or ""
-        )
+    barcode2 = request.form.get(
+        "barcode2",
+        ""
+    ).strip()
 
-        barcode_b = clean_barcode(
-            request.form.get(
-                "barcode2"
-            )
-            or request.form.get(
-                "barcode_b"
-            )
-            or ""
-        )
-
-        if not barcode_a or not barcode_b:
-
-            return render_template(
-                "index.html",
-                product=None,
-                result=None,
-                error=(
-                    "Please enter both "    
-                    "product barcodes."
-                ),
-                comparison=None,
-            )
-
-        product_a = lookup_openfoodfacts(
-            barcode_a
-        )
-
-        product_b = lookup_openfoodfacts(
-            barcode_b
-        )
-
-        if product_a is None:
-
-            return render_template(
-                "index.html",
-                product=None,
-                result=None,
-                error=(
-                    f"Product 1 was not found "
-                    f"for barcode {barcode_a}."
-                ),
-                comparison=None,
-            )
-
-        if product_b is None:
-
-            return render_template(
-                "index.html",
-                product=None,
-                result=None,
-                error=(
-                    f"Product 2 was not found "
-                    f"for barcode {barcode_b}."
-                ),
-                comparison=None,
-            )
-
-        comparison = get_comparison_data(
-            product_a,
-            product_b
-        )
+    if not barcode1 or not barcode2:
 
         return render_template(
+
             "index.html",
-            product=None,
-            result=None,
-            error=None,
-            comparison=comparison,
+
+            compare_error=
+                "Please enter both barcodes."
+
         )
 
-    except Exception as exc:
-
-        print(
-            "COMPARE ERROR:",
-            repr(exc)
-        )
+    if (
+        not barcode1.isdigit()
+        or not barcode2.isdigit()
+    ):
 
         return render_template(
+
             "index.html",
-            product=None,
-            result=None,
-            error=(
-                "Unable to compare these "
-                "products right now."
-            ),
-            comparison=None,
+
+            compare_error=
+                "Barcodes should contain numbers only."
+
         )
 
-
-# ============================================================
-# HEALTH CHECK
-# ============================================================
-
-@app.route("/health")
-def health():
-
-    return {
-        "status": "ok",
-        "service": "ProductLens",
-    }
-
-
-# ============================================================
-# DEBUG API TEST
-# ============================================================
-
-@app.route("/test-barcode/<barcode>")
-def test_barcode(barcode):
-
-    clean_code = clean_barcode(
-        barcode
+    product1 = search_product(
+        barcode1
     )
 
-    if not clean_code:
-
-        return {
-            "status": "error",
-            "message": "Invalid barcode",
-        }
-
-    product = lookup_openfoodfacts(
-        clean_code
+    product2 = search_product(
+        barcode2
     )
 
-    if product is None:
+    if not product1 or not product2:
 
-        return {
-            "status": "not_found",
-            "barcode": clean_code,
-            "message": (
-                "Open Food Facts did not "
-                "return a product."
-            ),
-        }
+        return render_template(
 
-    return {
-        "status": "found",
-        "barcode": clean_code,
-        "product_name": (
-            product.get("product_name")
-            or product.get(
-                "product_name_en"
-            )
-            or "Unknown Product"
-        ),
-        "brand": product.get(
-            "brands",
-            ""
-        ),
-        "ingredients": get_ingredient_list(
-            product
-        ),
+            "index.html",
+
+            compare_error=
+                "One or both products could not be found."
+
+        )
+
+    rows = []
+
+    nutrients = [
+
+        ("Energy", "energy", "kcal"),
+
+        ("Sugar", "sugar", "g"),
+
+        ("Fat", "fat", "g"),
+
+        ("Protein", "protein", "g"),
+
+        ("Salt", "salt", "g")
+
+    ]
+
+    for label, key, unit in nutrients:
+
+        value1 = safe_number(
+            product1.get(key)
+        )
+
+        value2 = safe_number(
+            product2.get(key)
+        )
+
+        if key == "protein":
+
+            if value1 > value2:
+
+                result = "Product 1 has more protein"
+
+            elif value2 > value1:
+
+                result = "Product 2 has more protein"
+
+            else:
+
+                result = "Same"
+
+        else:
+
+            if value1 < value2:
+
+                result = "Product 1 is lower"
+
+            elif value2 < value1:
+
+                result = "Product 2 is lower"
+
+            else:
+
+                result = "Same"
+
+        rows.append({
+
+            "label": label,
+
+            "value1": value1,
+
+            "value2": value2,
+
+            "unit": unit,
+
+            "result": result
+
+        })
+
+    insights = []
+
+    if product1["sugar"] < product2["sugar"]:
+
+        insights.append(
+            product1["name"]
+            + " has less sugar."
+        )
+
+    elif product2["sugar"] < product1["sugar"]:
+
+        insights.append(
+            product2["name"]
+            + " has less sugar."
+        )
+
+    if product1["protein"] > product2["protein"]:
+
+        insights.append(
+            product1["name"]
+            + " has more protein."
+        )
+
+    elif product2["protein"] > product1["protein"]:
+
+        insights.append(
+            product2["name"]
+            + " has more protein."
+        )
+
+    if (
+        product1["score"]["value"]
+        > product2["score"]["value"]
+    ):
+
+        insights.append(
+            product1["name"]
+            + " has the higher ProductLens score."
+        )
+
+    elif (
+        product2["score"]["value"]
+        > product1["score"]["value"]
+    ):
+
+        insights.append(
+            product2["name"]
+            + " has the higher ProductLens score."
+        )
+
+    comparison = {
+
+        "product1": product1,
+
+        "product2": product2,
+
+        "rows": rows,
+
+        "insights": insights
+
     }
 
+    return render_template(
 
-# ============================================================
-# RUN
-# ============================================================
+        "index.html",
+
+        comparison=comparison
+
+    )
+
+
+# =========================================================
+# RUN APPLICATION
+# =========================================================
 
 if __name__ == "__main__":
 
+    print()
     print("=" * 60)
-    print("ProductLens — Food Intelligence")
+    print("🔎 PRODUCTLENS")
+    print("Food Ingredient & Nutrition Intelligence")
     print("=" * 60)
-    print("Server: http://127.0.0.1:5000")
-    print("Health: http://127.0.0.1:5000/health")
-    print(
-        "Barcode Test: "
-        "http://127.0.0.1:5000/test-barcode/8901234567890"
-    )
-    print("=" * 60)
+    print()
+    print("Starting Flask server...")
+    print("Open http://127.0.0.1:5000")
+    print()
 
     app.run(
+
         host="0.0.0.0",
+
         port=5000,
-        debug=True,
+
+        debug=True
+
     )
