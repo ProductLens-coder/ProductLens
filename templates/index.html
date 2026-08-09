@@ -580,6 +580,7 @@
         .summary-item strong { display: block; font-size: 12px; }
         .summary-item span { display: block; color: var(--muted); font-size: 11px; }
         .summary-source { margin-top: 11px; color: var(--muted); font-size: 10px; }
+        @media (max-width: 650px) { .verification-grid { grid-template-columns: 1fr !important; } }
 
         /* =========================
            HIGHLIGHTS
@@ -1853,6 +1854,37 @@
 
         </section>
 
+
+
+        <!-- =========================
+             PRODUCT VERIFICATION
+        ========================== -->
+        <section class="section">
+            <div class="section-heading">
+                <div>
+                    <h3>🛡️ Product Verification</h3>
+                    <p>Regulatory information associated with the product.</p>
+                </div>
+            </div>
+            <div class="card" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">
+                <div class="empty">
+                    <strong style="display:block;color:#172033;margin-bottom:4px;">FSSAI Licence / Registration</strong>
+                    {% if product.fssai_license %}
+                        <span style="font-weight:800;color:#166534;">✓ {{ product.fssai_license }}</span>
+                    {% else %}
+                        <span>Not available in the connected product data</span>
+                    {% endif %}
+                </div>
+                <div class="empty">
+                    <strong style="display:block;color:#172033;margin-bottom:4px;">Brand / Manufacturer</strong>
+                    <span>{{ product.brands or 'Not available' }}</span>
+                </div>
+                <div class="empty">
+                    <strong style="display:block;color:#172033;margin-bottom:4px;">Verification Status</strong>
+                    <span style="font-weight:800;">✓ Product data found</span>
+                </div>
+            </div>
+        </section>
 
         <!-- =========================
              SMART HIGHLIGHTS

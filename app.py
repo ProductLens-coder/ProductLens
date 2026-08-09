@@ -1647,9 +1647,13 @@ def finalize_product(product):
 
     product["decoded_ingredients"] = product["ingredient_details"]
 
-    product["smart_highlights"] = make_smart_highlights(
-        product
-    )
+    product["smart_highlights"] = make_smart_highlights(product) or [
+        {
+            "icon": "🔎",
+            "title": "Product Analysis",
+            "text": "Nutrition and ingredient information is available below."
+        }
+    ]
 
     product["disease_cautions"] = disease_cautions(
         product
@@ -1698,6 +1702,29 @@ def finalize_product(product):
     )
 
     return product
+
+
+# =========================================================
+# FSSAI LICENCE / REGISTRATION EXTRACTION
+# =========================================================
+def extract_fssai_number(raw):
+    """Extract a 14-digit FSSAI licence/registration number only from label-like data."""
+    fields = [
+        raw.get("ingredients_text_with_allergens"),
+        raw.get("ingredients_text_with_allergens_en"),
+        raw.get("ingredients_text"),
+        raw.get("ingredients_text_en"),
+        raw.get("generic_name"),
+        raw.get("generic_name_en"),
+        raw.get("manufacturing_places"),
+        raw.get("packaging_text"),
+        raw.get("labels"),
+        raw.get("stores"),
+    ]
+    text = " ".join(str(x) for x in fields if x)
+    # FSSAI licence/registration numbers are 14 digits; licence starts with 1, registration with 2.
+    matches = re.findall(r"(?<!\d)([12]\d{13})(?!\d)", text)
+    return matches[0] if matches else ""
 
 
 # =========================================================
