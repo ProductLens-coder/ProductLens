@@ -4,7 +4,6 @@ import re
 
 app = Flask(__name__)
 
-
 # =========================================================
 # API SETTINGS
 # =========================================================
@@ -1059,6 +1058,545 @@ def decode_ingredients(ingredients):
 
 
 # =========================================================
+# PRODUCT SUMMARY
+# =========================================================
+
+def create_product_summary(product):
+
+    name = product.get(
+        "name",
+        "This product"
+    )
+
+    ingredients = str(
+        product.get("ingredients", "")
+    ).lower()
+
+    sugar = safe_number(
+        product.get("sugar")
+    )
+
+    fat = safe_number(
+        product.get("fat")
+    )
+
+    protein = safe_number(
+        product.get("protein")
+    )
+
+    salt = safe_number(
+        product.get("salt")
+    )
+
+    allergens = product.get(
+        "detected_allergens",
+        []
+    )
+
+    observations = []
+
+    # Product type clues
+    if any(
+        word in ingredients
+        for word in [
+            "cocoa",
+            "chocolate"
+        ]
+    ):
+        observations.append(
+            "a cocoa/chocolate-based product"
+        )
+
+    elif any(
+        word in ingredients
+        for word in [
+            "wheat",
+            "flour",
+            "maida",
+            "atta"
+        ]
+    ):
+        observations.append(
+            "a wheat-based product"
+        )
+
+    elif any(
+        word in ingredients
+        for word in [
+            "milk",
+            "whey",
+            "casein",
+            "butter",
+            "cream"
+        ]
+    ):
+        observations.append(
+            "a dairy-containing product"
+        )
+
+    else:
+        observations.append(
+            "a packaged food product"
+        )
+
+    # Nutrition observations
+    nutrition_points = []
+
+    if sugar > 15:
+        nutrition_points.append(
+            "relatively high in sugar"
+        )
+    elif sugar <= 5 and sugar > 0:
+        nutrition_points.append(
+            "relatively low in sugar"
+        )
+
+    if fat > 17.5:
+        nutrition_points.append(
+            "relatively high in total fat"
+        )
+
+    if protein >= 10:
+        nutrition_points.append(
+            "provides a relatively high amount of protein"
+        )
+
+    if salt > 1.5:
+        nutrition_points.append(
+            "relatively high in salt"
+        )
+
+    if nutrition_points:
+
+        nutrition_sentence = (
+            " Nutritionally, it is "
+            + ", ".join(nutrition_points)
+            + "."
+        )
+
+    else:
+
+        nutrition_sentence = (
+            " The available nutrition data does not show a major "
+            "high-level concern under the ProductLens screening rules."
+        )
+
+    if allergens:
+
+        allergen_names = ", ".join(
+            item["name"]
+            for item in allergens
+        )
+
+        allergen_sentence = (
+            f" ProductLens detected potential "
+            f"allergen sources including {allergen_names}, "
+            f"so the package allergen declaration should be checked carefully."
+        )
+
+    else:
+
+        allergen_sentence = (
+            " No major allergen from the ProductLens detection list "
+            "was identified in the available ingredient information."
+        )
+
+    summary = (
+        f"{name} appears to be "
+        + observations[0]
+        + "."
+        + nutrition_sentence
+        + allergen_sentence
+    )
+
+    return summary
+
+
+# =========================================================
+# LABEL AWARENESS
+# =========================================================
+
+def create_label_awareness(product):
+
+    ingredients = str(
+        product.get("ingredients", "")
+    ).lower()
+
+    awareness = []
+
+    # Added sugars
+    sugar_terms = [
+        "sugar",
+        "glucose",
+        "dextrose",
+        "fructose",
+        "sucrose",
+        "syrup",
+        "maltose"
+    ]
+
+    found_sugars = [
+        term
+        for term in sugar_terms
+        if term in ingredients
+    ]
+
+    if found_sugars:
+
+        awareness.append({
+
+            "icon": "🍬",
+
+            "title": "Look beyond the word 'sweet'",
+
+            "text":
+                "The ingredient list contains sugar or sweetening ingredients. "
+                "Check how early they appear in the ingredient list and compare "
+                "this with the nutrition panel.",
+
+            "class": "caution"
+
+        })
+
+    # Colours
+    if any(
+        term in ingredients
+        for term in [
+            "colour",
+            "color",
+            "food colour",
+            "food color"
+        ]
+    ):
+
+        awareness.append({
+
+            "icon": "🎨",
+
+            "title": "Added colour detected",
+
+            "text":
+                "A colouring ingredient appears in the available ingredient list. "
+                "If this matters to you, check the package for the specific colour "
+                "name or additive number.",
+
+            "class": "info"
+
+        })
+
+    # Flavour
+    if any(
+        term in ingredients
+        for term in [
+            "flavour",
+            "flavor",
+            "flavouring",
+            "flavoring"
+        ]
+    ):
+
+        awareness.append({
+
+            "icon": "👅",
+
+            "title": "Flavouring detected",
+
+            "text":
+                "The product contains a flavouring term. The database may not "
+                "show every detail of the flavouring mixture, so the physical "
+                "package is the better source for the exact declaration.",
+
+            "class": "info"
+
+        })
+
+    # Preservatives
+    if any(
+        term in ingredients
+        for term in [
+            "preservative",
+            "sodium benzoate",
+            "potassium sorbate"
+        ]
+    ):
+
+        awareness.append({
+
+            "icon": "🧪",
+
+            "title": "Preservative detected",
+
+            "text":
+                "A preservative or preservative-related ingredient appears in "
+                "the available ingredient information. Check the label for its "
+                "specific name or additive number.",
+
+            "class": "caution"
+
+        })
+
+    # Emulsifiers
+    if any(
+        term in ingredients
+        for term in [
+            "emulsifier",
+            "lecithin"
+        ]
+    ):
+
+        awareness.append({
+
+            "icon": "🔬",
+
+            "title": "Emulsifier detected",
+
+            "text":
+                "An emulsifier appears in the ingredient list. These ingredients "
+                "are commonly used to help components such as oil and water stay mixed.",
+
+            "class": "info"
+
+        })
+
+    # Palm oil
+    if "palm oil" in ingredients:
+
+        awareness.append({
+
+            "icon": "🌴",
+
+            "title": "Palm oil detected",
+
+            "text":
+                "Palm oil appears in the available ingredient information. "
+                "ProductLens is flagging its presence for label awareness, "
+                "not making a health claim about the ingredient.",
+
+            "class": "info"
+
+        })
+
+    # Hydrogenated fat
+    if any(
+        term in ingredients
+        for term in [
+            "hydrogenated",
+            "partially hydrogenated"
+        ]
+    ):
+
+        awareness.append({
+
+            "icon": "⚠️",
+
+            "title": "Hydrogenated fat wording detected",
+
+            "text":
+                "Hydrogenated wording appears in the ingredient information. "
+                "Check the physical nutrition label and ingredient declaration "
+                "for the exact type and amount.",
+
+            "class": "caution"
+
+        })
+
+    # Allergens
+    if product.get("detected_allergens"):
+
+        awareness.append({
+
+            "icon": "🚨",
+
+            "title": "Allergen declaration deserves attention",
+
+            "text":
+                "Potential allergens were identified from the available product "
+                "data. Always verify the package allergen statement, especially "
+                "for a known food allergy.",
+
+            "class": "danger"
+
+        })
+
+    # Always give a useful final awareness message
+    awareness.append({
+
+        "icon": "📦",
+
+        "title": "Database vs. physical label",
+
+        "text":
+            "Product information can change with reformulation or regional "
+            "packaging. ProductLens should be used as an awareness tool; "
+            "the current physical package remains the final label reference.",
+
+        "class": "neutral"
+
+    })
+
+    return awareness
+
+
+# =========================================================
+# INGREDIENT REALITY CHECK
+# =========================================================
+
+def ingredient_reality_check(product):
+
+    ingredients = str(
+        product.get("ingredients", "")
+    ).lower()
+
+    checks = []
+
+    # Sugar reality
+    sugar_words = [
+        "sugar",
+        "glucose",
+        "dextrose",
+        "fructose",
+        "sucrose",
+        "syrup",
+        "maltose"
+    ]
+
+    sugar_found = [
+        word
+        for word in sugar_words
+        if word in ingredients
+    ]
+
+    if sugar_found:
+
+        checks.append({
+
+            "icon": "🍬",
+
+            "title": "Sweetening ingredients present",
+
+            "text":
+                "The product uses one or more sweetening ingredients. "
+                "Ingredient names and the nutrition panel should be considered together.",
+
+            "severity": "attention"
+
+        })
+
+    # Additive reality
+    additive_words = [
+        "preservative",
+        "emulsifier",
+        "stabilizer",
+        "thickener",
+        "colour",
+        "color",
+        "flavour",
+        "flavor",
+        "acidity regulator"
+    ]
+
+    additive_found = [
+        word
+        for word in additive_words
+        if word in ingredients
+    ]
+
+    if additive_found:
+
+        checks.append({
+
+            "icon": "🧪",
+
+            "title": "Functional additives present",
+
+            "text":
+                "The ingredient list contains ingredients used for functions "
+                "such as preservation, colour, flavour, stability or texture. "
+                "Their presence alone does not determine whether a food is healthy or unhealthy.",
+
+            "severity": "info"
+
+        })
+
+    # Refined grain reality
+    if any(
+        term in ingredients
+        for term in [
+            "maida",
+            "refined wheat flour",
+            "wheat flour"
+        ]
+    ):
+
+        checks.append({
+
+            "icon": "🌾",
+
+            "title": "Wheat flour detected",
+
+            "text":
+                "Wheat flour appears in the ingredient list. If you are looking "
+                "for a whole-grain product, check whether whole wheat or another "
+                "whole grain is specifically declared.",
+
+            "severity": "info"
+
+        })
+
+    # Fat reality
+    oil_terms = [
+        "palm oil",
+        "vegetable oil",
+        "sunflower oil",
+        "coconut oil",
+        "olive oil",
+        "butter",
+        "ghee"
+    ]
+
+    oil_found = [
+        term
+        for term in oil_terms
+        if term in ingredients
+    ]
+
+    if oil_found:
+
+        checks.append({
+
+            "icon": "🫒",
+
+            "title": "Added fat/oil detected",
+
+            "text":
+                "A fat or oil ingredient appears in the product. "
+                "Compare this with total fat on the nutrition panel.",
+
+            "severity": "info"
+
+        })
+
+    if not checks:
+
+        checks.append({
+
+            "icon": "🔎",
+
+            "title": "No major ingredient pattern detected",
+
+            "text":
+                "ProductLens did not identify a major ingredient pattern from "
+                "its current awareness rules. Review the full ingredient list "
+                "for the most complete picture.",
+
+            "severity": "neutral"
+
+        })
+
+    return checks
+
+
+# =========================================================
 # DISEASE / HEALTH CAUTIONS
 # =========================================================
 
@@ -1092,7 +1630,9 @@ def disease_cautions(product):
             "title": "Diabetes Caution",
 
             "text":
-                "This product contains a high amount of sugar per 100 g. People with diabetes may need to limit or carefully portion high-sugar foods.",
+                "This product contains a high amount of sugar per 100 g. "
+                "People with diabetes may need to limit or carefully portion "
+                "high-sugar foods.",
 
             "class": "danger"
 
@@ -1107,7 +1647,9 @@ def disease_cautions(product):
             "title": "Blood Pressure / Hypertension Caution",
 
             "text":
-                "This product contains a relatively high amount of salt per 100 g. People managing high blood pressure may need to monitor their sodium and salt intake.",
+                "This product contains a relatively high amount of salt per 100 g. "
+                "People managing high blood pressure may need to monitor their "
+                "sodium and salt intake.",
 
             "class": "danger"
 
@@ -1117,12 +1659,14 @@ def disease_cautions(product):
 
         cautions.append({
 
-            "icon": "⚠️",
+            "icon": "🫒",
 
-            "title": "Cardiovascular Health Caution",
+            "title": "Higher Total Fat",
 
             "text":
-                "This product is relatively high in total fat per 100 g. Overall dietary pattern and the type of fat are important when considering cardiovascular health.",
+                "This product is relatively high in total fat per 100 g. "
+                "Overall dietary pattern and the type of fat are important "
+                "when considering cardiovascular health.",
 
             "class": "caution"
 
@@ -1148,7 +1692,8 @@ def disease_cautions(product):
                 "text":
                     "Potential allergens detected: "
                     + names
-                    + ". People with a relevant food allergy should check the package label and allergen declaration carefully.",
+                    + ". People with a relevant food allergy should check "
+                    "the package label and allergen declaration carefully.",
 
                 "class": "danger"
 
@@ -1446,6 +1991,19 @@ def finalize_product(product):
     )
 
     product["score"] = calculate_score(
+        product
+    )
+
+    # NEW INTELLIGENCE FEATURES
+    product["product_summary"] = create_product_summary(
+        product
+    )
+
+    product["label_awareness"] = create_label_awareness(
+        product
+    )
+
+    product["ingredient_reality"] = ingredient_reality_check(
         product
     )
 
@@ -1994,7 +2552,8 @@ def search():
         missing_barcode=barcode,
 
         error=
-            "Barcode recognized, but product information was not found in the available databases."
+            "Barcode recognized, but product information was not found "
+            "in the available databases."
 
     )
 
