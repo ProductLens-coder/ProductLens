@@ -1,0 +1,62 @@
+name: Repair ProductLens result data
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore analysis fields without changing the UI design
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('app.py')
+          s = p.read_text(encoding='utf-8')
+
+          # Add robust FSSAI extraction from any label-like text returned by the database.
+          marker = '# =========================================================\n# OPEN FOOD FACTS\n# =========================================================\n'
+          helper = '''# =========================================================\n# FSSAI LICENCE / REGISTRATION EXTRACTION\n# =========================================================\ndef extract_fssai_number(raw):\n    """Extract a 14-digit FSSAI licence/registration number only from label-like data."""\n    fields = [\n        raw.get("ingredients_text_with_allergens"),\n        raw.get("ingredients_text_with_allergens_en"),\n        raw.get("ingredients_text"),\n        raw.get("ingredients_text_en"),\n        raw.get("generic_name"),\n        raw.get("generic_name_en"),\n        raw.get("manufacturing_places"),\n        raw.get("packaging_text"),\n        raw.get("labels"),\n        raw.get("stores"),\n    ]\n    text = " ".join(str(x) for x in fields if x)\n    # FSSAI licence/registration numbers are 14 digits; licence starts with 1, registration with 2.\n    matches = re.findall(r"(?<!\\d)([12]\\d{13})(?!\\d)", text)\n    return matches[0] if matches else ""\n\n\n'''
+          if 'def extract_fssai_number(' not in s:
+              s = s.replace(marker, helper + marker, 1)
+
+          # Make every OFF product carry the extracted regulatory number.
+          s = s.replace('''        return finalize_product(product)\n\n\ndef get_from_open_food_facts''', '''        product["fssai_license"] = extract_fssai_number(raw)\n        return finalize_product(product)\n\n\ndef get_from_open_food_facts''', 1)
+          s = s.replace('''        return finalize_product(product)\n\n\n# =========================================================\n# SEARCH PRODUCT''', '''        product["fssai_license"] = extract_fssai_number(raw)\n        return finalize_product(product)\n\n\n# =========================================================\n# SEARCH PRODUCT''', 1)
+
+          # Ensure smart highlights and summary are always populated after finalization.
+          old = '''    product["smart_highlights"] = make_smart_highlights(\n        product\n    )'''
+          new = '''    product["smart_highlights"] = make_smart_highlights(product) or [\n        {\n            "icon": "🔎",\n            "title": "Product Analysis",\n            "text": "Nutrition and ingredient information is available below."\n        }\n    ]'''
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          p.write_text(s, encoding='utf-8')
+
+          # Patch the result template with a compact FSSAI trust card.
+          t = Path('templates/index.html')
+          h = t.read_text(encoding='utf-8')
+          if 'FSSAI Licence' not in h:
+              card = '''\n        <!-- =========================\n             PRODUCT VERIFICATION\n        ========================== -->\n        <section class="section">\n            <div class="section-heading">\n                <div>\n                    <h3>🛡️ Product Verification</h3>\n                    <p>Regulatory information associated with the product.</p>\n                </div>\n            </div>\n            <div class="card" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;">\n                <div class="empty">\n                    <strong style="display:block;color:#172033;margin-bottom:4px;">FSSAI Licence / Registration</strong>\n                    {% if product.fssai_license %}\n                        <span style="font-weight:800;color:#166534;">✓ {{ product.fssai_license }}</span>\n                    {% else %}\n                        <span>Not available in the connected product data</span>\n                    {% endif %}\n                </div>\n                <div class="empty">\n                    <strong style="display:block;color:#172033;margin-bottom:4px;">Brand / Manufacturer</strong>\n                    <span>{{ product.brands or 'Not available' }}</span>\n                </div>\n                <div class="empty">\n                    <strong style="display:block;color:#172033;margin-bottom:4px;">Verification Status</strong>\n                    <span style="font-weight:800;">✓ Product data found</span>\n                </div>\n            </div>\n        </section>\n\n'''
+              anchor = '        <!-- =========================\n             SMART HIGHLIGHTS\n        ========================== -->'
+              h = h.replace(anchor, card + anchor, 1)
+
+          # Mobile-safe verification grid.
+          if '.verification-grid' not in h:
+              h = h.replace('.summary-source { margin-top: 11px; color: var(--muted); font-size: 10px; }', '.summary-source { margin-top: 11px; color: var(--muted); font-size: 10px; }\n        @media (max-width: 650px) { .verification-grid { grid-template-columns: 1fr !important; } }')
+
+          t.write_text(h, encoding='utf-8')
+          PY
+
+          # Replace the temporary workflow after applying the repair.
+          git config user.name "ProductLens Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add app.py templates/index.html
+          git rm .github/workflows/repair-productlens.yml
+          git add -A
+          git commit -m "Restore smart highlights and add FSSAI verification" || true
+          git push
