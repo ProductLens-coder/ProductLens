@@ -1,8 +1,8 @@
 """ProductLens deployment intelligence layer.
 
-Loaded by Render before the Flask app. It keeps the existing UI and adds
-strict barcode validation, broader database fallback, FSSAI extraction, and
-AI-assisted gap filling without inventing product facts.
+Loaded by Render before the Flask app. Keeps the existing interface while
+adding strict barcode validation, broader database fallback, FSSAI recovery,
+AI-assisted evidence-only gap filling, and reliable result auto-scroll.
 """
 import json
 import os
@@ -41,8 +41,6 @@ def _same_product_barcode(requested, returned):
 def _extract_fssai(text):
     if not text:
         return ""
-    # FSSAI licence/registration identifiers are 14 digits; avoid accepting
-    # arbitrary long numbers by requiring the usual 1/2 prefix.
     matches = re.findall(r"(?<!\d)([12]\d{13})(?!\d)", str(text))
     return matches[0] if matches else ""
 
@@ -61,7 +59,7 @@ def _fssai_from_off(raw):
 
 
 def _fetch_off_exact(barcode):
-    """Fetch OFF search data but accept it only when its returned GTIN matches."""
+    """Return OFF data only when the returned GTIN matches the scanned code."""
     for code in _barcode_variants(barcode):
         try:
             response = requests.get(
@@ -84,8 +82,7 @@ def _fetch_off_exact(barcode):
             response.raise_for_status()
             products = (response.json() or {}).get("products") or []
             for raw in products:
-                returned = raw.get("code") or ""
-                if _same_product_barcode(barcode, returned):
+                if _same_product_barcode(barcode, raw.get("code", "")):
                     return raw
         except (requests.RequestException, ValueError, TypeError):
             continue
@@ -101,6 +98,7 @@ def _product_from_off(appmod, raw, requested):
             raw.get("allergens_hierarchy")
         ] if v
     )
+    fssai = _fssai_from_off(raw)
     product = {
         "name": raw.get("product_name") or raw.get("product_name_en") or "Unknown Product",
         "brands": raw.get("brands", ""),
@@ -116,8 +114,8 @@ def _product_from_off(appmod, raw, requested):
         "salt": nutrition.get("salt_100g", 0),
         "source": "Open Food Facts",
         "verified": True,
-        "fssai_license": _fssai_from_off(raw),
-        "fssai_source": "Open Food Facts label data" if _fssai_from_off(raw) else "",
+        "fssai_license": fssai,
+        "fssai_source": "Open Food Facts label data" if fssai else "",
     }
     return appmod.finalize_product(product)
 
@@ -170,7 +168,7 @@ def _usda_exact(appmod, barcode):
 
 
 def _safe_ai_gap_fill(appmod, product):
-    """Fill only missing fields using evidence returned by the product databases."""
+    """Use AI only to interpret evidence already present; never invent facts."""
     key = os.getenv("OPENAI_API_KEY", "")
     if not key:
         return product
@@ -188,8 +186,8 @@ def _safe_ai_gap_fill(appmod, product):
     }
     prompt = (
         "You are a food-product data recovery layer. Use only the supplied evidence. "
-        "Never invent a product, barcode, ingredient, allergen, or FSSAI number. "
-        "For an FSSAI number, return it only when the evidence explicitly contains a 14-digit number. "
+        "Never invent a product, barcode, ingredient, allergen, adulteration claim, or FSSAI number. "
+        "For FSSAI, return a number only if the supplied evidence explicitly contains a 14-digit number. "
         "Return JSON with keys ingredients, allergens, fssai_license, summary_points. "
         "Use empty strings/lists when evidence is insufficient.\n" + json.dumps(evidence, ensure_ascii=False)
     )
@@ -229,7 +227,13 @@ def _safe_ai_gap_fill(appmod, product):
                 product["ai_summary_points"] = [str(x).strip() for x in parsed["summary_points"] if str(x).strip()]
     except (requests.RequestException, ValueError, TypeError, KeyError, IndexError):
         pass
-    return appmod.finalize_product(product)
+
+    product = appmod.finalize_product(product)
+    if product.get("ai_summary_points"):
+        existing = product.get("product_summary") or []
+        existing.extend({"icon": "🧠", "title": "AI Evidence Insight", "text": x} for x in product["ai_summary_points"])
+        product["product_summary"] = existing[:6]
+    return product
 
 
 def install(appmod):
@@ -246,7 +250,8 @@ def install(appmod):
     def strict_search(barcode):
         requested = _digits(barcode)
         product = original_search(requested)
-        # Existing code can return a search result that is not the scanned GTIN.
+        # Existing search fallback may choose the first text-search result.
+        # Never accept it unless its GTIN is the scanned product's GTIN.
         if product and _same_product_barcode(requested, product.get("barcode", "")):
             if not product.get("fssai_license"):
                 exact = _fetch_off_exact(requested)
@@ -255,8 +260,6 @@ def install(appmod):
                     if product["fssai_license"]:
                         product["fssai_source"] = "Open Food Facts label data"
             return _safe_ai_gap_fill(appmod, product)
-        if product:
-            product = None
 
         raw = _fetch_off_exact(requested)
         if raw:
@@ -269,10 +272,45 @@ def install(appmod):
         return None
 
     appmod.search_product = strict_search
+
+    # Preserve the existing page design but make analysis results reliably
+    # visible after a POST, including on mobile browsers.
+    @appmod.app.after_request
+    def productlens_scroll_fix(response):
+        content_type = response.headers.get("Content-Type", "")
+        if "text/html" in content_type and response.status_code == 200:
+            try:
+                body = response.get_data(as_text=True)
+                marker = "</body>"
+                script = """
+<script>
+(function () {
+  function showAnalysis() {
+    var results = document.getElementById('analysisResults');
+    if (!results) return;
+    setTimeout(function () {
+      var top = results.getBoundingClientRect().top + window.pageYOffset - 18;
+      window.scrollTo({ top: Math.max(0, top), left: 0, behavior: 'smooth' });
+    }, 180);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showAnalysis, {once:true});
+  } else {
+    showAnalysis();
+  }
+})();
+</script>
+"""
+                if marker in body and "productlens_scroll_fix" not in body:
+                    body = body.replace(marker, script + "\n" + marker, 1)
+                    response.set_data(body)
+            except Exception:
+                pass
+        return response
+
     return appmod.app
 
 
-# Render imports this module as its WSGI target.
 from app import app as _flask_app
 install(__import__("app"))
 app = _flask_app
