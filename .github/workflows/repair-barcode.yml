@@ -1,0 +1,45 @@
+name: Repair barcode lookup
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch barcode normalization and OFF fallback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app.py')
+          s = p.read_text(encoding='utf-8')
+
+          old = '''    # EAN-13 -> UPC-A\n    if len(barcode) == 13 and barcode.startswith("0"):\n        codes.append(barcode[1:])\n\n    # Remove duplicates\n    return list(dict.fromkeys(codes))'''
+          new = '''    # EAN-13 -> UPC-A\n    if len(barcode) == 13 and barcode.startswith("0"):\n        codes.append(barcode[1:])\n\n    # GTIN-14 commonly stores an EAN-13 with a leading 0\n    if len(barcode) == 14 and barcode.startswith("0"):\n        codes.append(barcode[1:])\n        if barcode[1] == "0":\n            codes.append(barcode[2:])\n\n    # EAN-8 is already directly searchable, but keep it explicit\n    if len(barcode) == 8:\n        codes.append(barcode)\n\n    # Remove duplicates\n    return list(dict.fromkeys(codes))'''
+          if old in s and 'GTIN-14 commonly stores' not in s:
+              s = s.replace(old, new, 1)
+
+          marker = '''# =========================================================\n# SEARCH PRODUCT\n# =========================================================\n'''
+          helper = '''# =========================================================\n# OPEN FOOD FACTS SEARCH FALLBACK\n# =========================================================\ndef get_from_off_search(barcode):\n    """Fallback lookup for products whose direct barcode endpoint misses."""\n    try:\n        response = requests.get(\n            "https://world.openfoodfacts.org/api/v2/search",\n            params={\n                "code": str(barcode),\n                "page_size": 1,\n                "fields": "code,product_name,product_name_en,brands,image_front_url,ingredients_text,ingredients_text_en,ingredients_text_with_allergens,ingredients_text_with_allergens_en,allergens,allergens_from_ingredients,allergens_tags,allergens_hierarchy,nutriments"\n            },\n            headers=HEADERS,\n            timeout=12\n        )\n        response.raise_for_status()\n        data = response.json()\n        products = data.get("products") or []\n        if not products:\n            return None\n\n        raw = products[0]\n        raw["status"] = 1\n        # Reuse the exact OFF parser by feeding the returned product through\n        # a tiny local reconstruction of the fields it expects.\n        nutrition = raw.get("nutriments", {}) or {}\n        product = {\n            "name": raw.get("product_name") or raw.get("product_name_en") or "Unknown Product",\n            "brands": raw.get("brands", ""),\n            "barcode": raw.get("code") or str(barcode),\n            "image": raw.get("image_front_url", ""),\n            "ingredients": extract_off_ingredients(raw),\n            "allergens": " ".join(str(v) for v in [raw.get("allergens", ""), raw.get("allergens_from_ingredients", ""), raw.get("allergens_hierarchy", "")] if v),\n            "allergen_tags": " ".join(str(v) for v in (raw.get("allergens_tags") or [])),\n            "energy": safe_number(nutrition.get("energy-kcal_100g", nutrition.get("energy-kcal", 0))),\n            "sugar": safe_number(nutrition.get("sugars_100g", nutrition.get("sugar_100g", 0))),\n            "fat": safe_number(nutrition.get("fat_100g", 0)),\n            "protein": safe_number(nutrition.get("proteins_100g", nutrition.get("protein_100g", 0))),\n            "salt": safe_number(nutrition.get("salt_100g", 0)),\n            "source": "Open Food Facts",\n            "verified": True\n        }\n        return finalize_product(product)\n    except (requests.RequestException, ValueError, TypeError, KeyError) as exc:\n        print("OFF search fallback error:", exc)\n        return None\n\n\n'''
+          if 'def get_from_off_search(' not in s:
+              s = s.replace(marker, helper + marker, 1)
+
+          old_search = '''    print(\n        "OFF: Product not found."\n    )\n\n    # -----------------------------------------\n    # DATABASE 2'''
+          new_search = '''    print(\n        "OFF: Product not found by direct barcode endpoint."\n    )\n\n    # -----------------------------------------\n    # OPEN FOOD FACTS SEARCH FALLBACK\n    # -----------------------------------------\n    for code in normalize_barcodes(barcode):\n        product = get_from_off_search(code)\n        if product:\n            print("SUCCESS: Product found using Open Food Facts search fallback.")\n            return product\n\n    # -----------------------------------------\n    # DATABASE 2'''
+          if old_search in s and 'OPEN FOOD FACTS SEARCH FALLBACK' not in s[s.index('def search_product'):s.index('def search_product')+2500]:
+              s = s.replace(old_search, new_search, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          git config user.name "ProductLens Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add app.py
+          git commit -m "Fix barcode lookup fallback" || true
+          git push
+          git rm .github/workflows/repair-barcode.yml || true
+          git commit -m "Remove temporary barcode repair workflow" || true
+          git push
