@@ -2039,6 +2039,38 @@ def finalize_product(product):
 # OPEN FOOD FACTS
 # =========================================================
 
+def extract_off_ingredients(raw):
+
+    candidates = [
+        raw.get("ingredients_text"),
+        raw.get("ingredients_text_en"),
+        raw.get("ingredients_text_with_allergens"),
+        raw.get("ingredients_text_with_allergens_en")
+    ]
+
+    for value in candidates:
+        if value and str(value).strip():
+            return str(value).strip()
+
+    structured = raw.get("ingredients") or []
+    parts = []
+
+    if isinstance(structured, list):
+        for item in structured:
+            if not isinstance(item, dict):
+                continue
+            name = (
+                item.get("text")
+                or item.get("text_en")
+                or item.get("id")
+                or ""
+            )
+            if name and str(name).strip():
+                parts.append(str(name).strip())
+
+    return ", ".join(parts) if parts else ""
+
+
 def get_from_open_food_facts(barcode):
 
     print()
@@ -2127,10 +2159,7 @@ def get_from_open_food_facts(barcode):
             {}
         )
 
-        ingredients = raw.get(
-            "ingredients_text",
-            ""
-        ) or ""
+        ingredients = extract_off_ingredients(raw)
 
         declared_allergens = raw.get(
             "allergens",
