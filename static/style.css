@@ -1,12 +1,11 @@
 /* =========================================================
    PRODUCTLENS — MODERN COLORFUL UI
-   Existing interface preserved
-   Mobile + readability fixes
-   ========================================================= */
+   Desktop preserved + responsive mobile layout
+========================================================= */
 
 /* =========================================================
    GLOBAL
-   ========================================================= */
+========================================================= */
 
 * {
     margin: 0;
@@ -42,10 +41,19 @@ body {
     min-height: 100vh;
 }
 
+img {
+    max-width: 100%;
+}
+
+button,
+input,
+textarea {
+    font-family: inherit;
+}
 
 /* =========================================================
    NAVBAR
-   ========================================================= */
+========================================================= */
 
 .navbar {
     width: 100%;
@@ -94,10 +102,9 @@ body {
     color: #00a878;
 }
 
-
 /* =========================================================
    HERO
-   ========================================================= */
+========================================================= */
 
 .hero {
     max-width: 1200px;
@@ -154,10 +161,9 @@ body {
     margin-bottom: 30px;
 }
 
-
 /* =========================================================
    BUTTONS
-   ========================================================= */
+========================================================= */
 
 .buttons {
     display: flex;
@@ -203,10 +209,9 @@ body {
     border-color: #14b8a6;
 }
 
-
 /* =========================================================
    SCANNER CARD
-   ========================================================= */
+========================================================= */
 
 .scanner-card {
     padding: 35px;
@@ -293,10 +298,9 @@ body {
     background: #00a878;
 }
 
-
 /* =========================================================
-   FEATURES SECTION
-   ========================================================= */
+   FEATURES
+========================================================= */
 
 .features {
     max-width: 1200px;
@@ -315,11 +319,6 @@ body {
     color: #64748b;
     margin: 10px auto 40px;
 }
-
-
-/* =========================================================
-   FEATURE GRID
-   ========================================================= */
 
 .feature-grid {
     display: grid;
@@ -366,10 +365,9 @@ body {
     font-size: 14px;
 }
 
-
 /* =========================================================
    PRODUCT RESULT
-   ========================================================= */
+========================================================= */
 
 .result-card {
     width: 95%;
@@ -431,10 +429,9 @@ body {
     object-fit: contain;
 }
 
-
 /* =========================================================
    INFO BOX
-   ========================================================= */
+========================================================= */
 
 .info-box {
     margin-top: 30px;
@@ -448,10 +445,9 @@ body {
     color: #475569;
 }
 
-
 /* =========================================================
    INGREDIENT DECODER
-   ========================================================= */
+========================================================= */
 
 .decoder-box {
     border-left-color: #8b5cf6;
@@ -488,10 +484,9 @@ body {
     margin-bottom: 6px;
 }
 
-
 /* =========================================================
    NUTRITION
-   ========================================================= */
+========================================================= */
 
 .nutrition-grid {
     display: grid;
@@ -559,10 +554,9 @@ body {
     color: #475569;
 }
 
-
 /* =========================================================
    ALLERGENS
-   ========================================================= */
+========================================================= */
 
 .allergen-box {
     border-left-color: #f97316;
@@ -602,10 +596,9 @@ body {
     font-weight: 600;
 }
 
-
 /* =========================================================
    PRODUCT SUMMARY
-   ========================================================= */
+========================================================= */
 
 .product-summary {
     display: flex;
@@ -620,10 +613,9 @@ body {
     font-weight: 700;
 }
 
-
 /* =========================================================
    ERROR
-   ========================================================= */
+========================================================= */
 
 .error-card {
     border-left: 6px solid #ef4444;
@@ -634,10 +626,9 @@ body {
     color: #dc2626;
 }
 
-
 /* =========================================================
    COMPARISON
-   ========================================================= */
+========================================================= */
 
 .compare-section {
     max-width: 1200px;
@@ -722,10 +713,9 @@ body {
     font-weight: 700;
 }
 
-
 /* =========================================================
    COMPARISON RESULT
-   ========================================================= */
+========================================================= */
 
 .comparison-result {
     margin-top: 35px;
@@ -823,10 +813,9 @@ body {
     font-size: 13px;
 }
 
-
 /* =========================================================
    ABOUT
-   ========================================================= */
+========================================================= */
 
 .about-section {
     max-width: 850px;
@@ -847,10 +836,9 @@ body {
     color: #64748b;
 }
 
-
 /* =========================================================
    FOOTER
-   ========================================================= */
+========================================================= */
 
 footer {
     padding: 30px;
@@ -860,10 +848,9 @@ footer {
     font-size: 13px;
 }
 
-
 /* =========================================================
    ANIMATION
-   ========================================================= */
+========================================================= */
 
 @keyframes fadeUp {
     from {
@@ -877,10 +864,9 @@ footer {
     }
 }
 
-
 /* =========================================================
    PRODUCT ANALYSIS DASHBOARD
-   ========================================================= */
+========================================================= */
 
 .analysis-dashboard {
     margin-top: 35px;
@@ -894,10 +880,9 @@ footer {
     border: 1px solid #e2e8f0;
 }
 
-
 /* =========================================================
    ANALYSIS TITLE
-   ========================================================= */
+========================================================= */
 
 .analysis-title {
     text-align: center;
@@ -924,10 +909,9 @@ footer {
     font-size: 14px;
 }
 
-
 /* =========================================================
    SCORE
-   ========================================================= */
+========================================================= */
 
 .score-section {
     display: flex;
@@ -1028,10 +1012,9 @@ footer {
     color: #475569;
 }
 
-
 /* =========================================================
    NUTRITION INDICATORS
-   ========================================================= */
+========================================================= */
 
 .indicator-section {
     margin-top: 30px;
@@ -1073,10 +1056,9 @@ footer {
     white-space: nowrap;
 }
 
-
 /* =========================================================
    PROGRESS BARS
-   ========================================================= */
+========================================================= */
 
 .progress-track {
     width: 100%;
@@ -1133,10 +1115,9 @@ footer {
     color: #64748b;
 }
 
-
 /* =========================================================
    INGREDIENT CATEGORIES
-   ========================================================= */
+========================================================= */
 
 .category-section {
     margin-top: 30px;
@@ -1224,10 +1205,9 @@ footer {
     color: #64748b;
 }
 
-
 /* =========================================================
    MANUAL INPUT
-   ========================================================= */
+========================================================= */
 
 .manual-box {
     margin: 30px auto;
@@ -1281,10 +1261,9 @@ footer {
     cursor: pointer;
 }
 
-
 /* =========================================================
    NUTRITION PROGRESS SECTION
-   ========================================================= */
+========================================================= */
 
 .nutrition-section {
     margin-top: 30px;
@@ -1310,10 +1289,9 @@ footer {
     font-weight: 700;
 }
 
-
 /* =========================================================
    LARGE TABLET
-   ========================================================= */
+========================================================= */
 
 @media (max-width: 1100px) {
 
@@ -1330,10 +1308,9 @@ footer {
     }
 }
 
-
 /* =========================================================
    TABLET
-   ========================================================= */
+========================================================= */
 
 @media (max-width: 900px) {
 
@@ -1379,10 +1356,9 @@ footer {
     }
 }
 
-
 /* =========================================================
-   MOBILE
-   ========================================================= */
+   MOBILE — MAIN RESPONSIVE FIX
+========================================================= */
 
 @media (max-width: 650px) {
 
@@ -1390,10 +1366,13 @@ footer {
         overflow-x: hidden;
     }
 
+    /* NAVBAR */
+
     .navbar {
-        padding: 15px 5%;
-        flex-wrap: wrap;
-        gap: 10px;
+        padding: 13px 5%;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
     }
 
     .logo {
@@ -1401,37 +1380,82 @@ footer {
     }
 
     .nav-links {
-        gap: 12px;
-        font-size: 13px;
+        width: 100%;
+        justify-content: center;
+        gap: 16px;
         flex-wrap: wrap;
+        font-size: 13px;
     }
 
+    /* HERO */
+
     .hero {
-        padding: 45px 5% 50px;
-        gap: 35px;
+        width: 100%;
+        padding: 38px 5% 45px;
+        gap: 30px;
     }
 
     .hero h1 {
-        font-size: 42px;
+        font-size: clamp(34px, 10vw, 44px);
+        letter-spacing: -1px;
     }
 
     .hero-text > p {
         font-size: 16px;
+        line-height: 1.55;
     }
 
+    .buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* SCANNER */
+
     .scanner-card {
+        width: 100%;
         padding: 25px 18px;
         border-radius: 22px;
     }
 
+    .scanner-card input,
+    .scanner-card form button {
+        min-height: 48px;
+    }
+
+    /* FEATURES */
+
     .features {
-        padding-left: 5%;
-        padding-right: 5%;
+        width: 100%;
+        padding: 25px 5% 60px;
+    }
+
+    .section-title {
+        font-size: 28px;
+        margin-top: 40px;
+    }
+
+    .section-subtitle {
+        font-size: 14px;
+        margin-bottom: 25px;
     }
 
     .feature-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
+
+    .feature-card {
+        padding: 22px;
+    }
+
+    /* RESULT */
 
     .result-card {
         width: calc(100% - 20px);
@@ -1441,15 +1465,18 @@ footer {
     }
 
     .result-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
+        width: 100%;
+        gap: 18px;
     }
 
     .result-header h2 {
-        font-size: 28px;
+        font-size: 26px;
         line-height: 1.2;
         max-width: 100%;
+    }
+
+    .result-label {
+        font-size: 12px;
     }
 
     .brand-text,
@@ -1468,13 +1495,24 @@ footer {
         max-height: 170px;
     }
 
+    /* INFO */
+
     .info-box {
         padding: 20px 18px;
+        margin-top: 22px;
     }
+
+    /* DECODER */
 
     .decoder-grid {
         grid-template-columns: 1fr;
     }
+
+    .decoder-item {
+        padding: 16px;
+    }
+
+    /* NUTRITION */
 
     .nutrition-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1482,7 +1520,7 @@ footer {
     }
 
     .nutrition-item {
-        padding: 15px 10px;
+        padding: 15px 8px;
     }
 
     .nutrition-item p {
@@ -1493,51 +1531,76 @@ footer {
         font-size: 24px;
     }
 
-    .indicator-grid {
-        grid-template-columns: 1fr;
+    .nutrition-level {
+        max-width: 100%;
+        font-size: 9px;
+        padding: 4px 6px;
     }
 
-    .indicator-card {
-        padding: 17px;
+    /* ALLERGENS */
+
+    .allergen-tags {
+        gap: 8px;
     }
 
-    .category-grid {
-        grid-template-columns: 1fr;
+    .allergen-tag {
+        font-size: 12px;
+        padding: 8px 11px;
     }
 
-    .category-card {
-        padding: 14px;
+    /* PRODUCT SUMMARY */
+
+    .product-summary {
+        gap: 10px 18px;
+        justify-content: flex-start;
     }
 
-    .category-bar {
-        width: 140px;
-    }
+    /* COMPARISON */
 
     .compare-section {
-        margin: 20px 5%;
-        padding: 30px 5%;
+        width: calc(100% - 20px);
+        margin: 20px auto 50px;
+        padding: 30px 18px;
         border-radius: 25px;
     }
 
     .compare-heading h2 {
-        font-size: 28px;
+        font-size: 27px;
+    }
+
+    .compare-heading p {
+        font-size: 14px;
     }
 
     .compare-form {
         grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .vs {
+        height: 25px;
+    }
+
+    .compare-button {
+        width: 100%;
+        justify-self: stretch;
     }
 
     .comparison-products {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 
-    .comparison-vs,
-    .vs {
+    .comparison-vs {
         height: 30px;
     }
 
     .comparison-result {
-        padding: 16px;
+        padding: 15px;
+    }
+
+    .comparison-product {
+        padding: 17px;
     }
 
     .comparison-table-wrapper {
@@ -1545,19 +1608,27 @@ footer {
         margin-right: -5px;
     }
 
+    /* ANALYSIS */
+
     .analysis-dashboard {
-        padding: 20px;
+        padding: 18px;
         margin-top: 25px;
+        border-radius: 22px;
     }
 
     .analysis-title h3 {
-        font-size: 24px;
+        font-size: 23px;
+    }
+
+    .analysis-title p {
+        font-size: 13px;
     }
 
     .score-section {
         flex-direction: column;
         text-align: center;
         padding: 20px 15px;
+        gap: 20px;
     }
 
     .score-circle {
@@ -1575,10 +1646,46 @@ footer {
 
     .score-info {
         width: 100%;
+        max-width: 100%;
     }
 
+    .score-info h3 {
+        font-size: 20px;
+    }
+
+    /* INDICATORS */
+
+    .indicator-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .indicator-card {
+        padding: 16px;
+    }
+
+    .indicator-top {
+        align-items: flex-start;
+    }
+
+    /* CATEGORIES */
+
+    .category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .category-card {
+        padding: 14px;
+    }
+
+    .category-bar {
+        width: 140px;
+    }
+
+    /* MANUAL */
+
     .manual-box {
-        margin: 15px;
+        width: calc(100% - 30px);
+        margin: 15px auto;
         padding: 20px;
     }
 
@@ -1586,41 +1693,87 @@ footer {
         font-size: 24px;
     }
 
+    .manual-info {
+        font-size: 14px;
+    }
+
+    /* NUTRITION SECTION */
+
     .nutrition-section {
         padding: 18px;
     }
 
-    .section-title {
-        font-size: 28px;
+    .nutrition-section h2 {
+        font-size: 22px;
+    }
+
+    .nutrition-header {
+        font-size: 14px;
+    }
+
+    /* ABOUT */
+
+    .about-section {
+        width: calc(100% - 30px);
+        padding: 30px 20px;
+        margin-bottom: 50px;
+    }
+
+    .about-section h2 {
+        font-size: 26px;
+    }
+
+    /* FOOTER */
+
+    footer {
+        padding: 25px 15px;
     }
 }
 
-
 /* =========================================================
    VERY SMALL PHONES
-   ========================================================= */
+========================================================= */
 
 @media (max-width: 400px) {
 
-    .hero h1 {
-        font-size: 36px;
-    }
-
     .navbar {
-        align-items: flex-start;
+        padding-left: 4%;
+        padding-right: 4%;
     }
 
     .nav-links {
-        width: 100%;
+        gap: 10px;
+        font-size: 12px;
+    }
+
+    .hero {
+        padding-left: 4%;
+        padding-right: 4%;
+    }
+
+    .hero h1 {
+        font-size: 34px;
+    }
+
+    .scanner-card {
+        padding: 22px 15px;
+    }
+
+    .result-card {
+        width: calc(100% - 14px);
+        padding: 15px;
+    }
+
+    .result-header h2 {
+        font-size: 23px;
     }
 
     .nutrition-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 7px;
     }
 
     .nutrition-item {
-        padding: 12px 7px;
+        padding: 12px 6px;
     }
 
     .nutrition-item p {
@@ -1628,8 +1781,7 @@ footer {
     }
 
     .nutrition-level {
-        font-size: 9px;
-        padding: 4px 6px;
+        font-size: 8px;
     }
 
     .product-image-container {
@@ -1641,36 +1793,63 @@ footer {
         max-height: 150px;
     }
 
-    .result-header h2 {
-        font-size: 24px;
+    .analysis-dashboard {
+        padding: 14px;
+    }
+
+    .score-circle {
+        --size: 110px;
+    }
+
+    .compare-section {
+        width: calc(100% - 14px);
+        padding: 25px 14px;
     }
 }
 
+/* =========================================================
+   PREVENT HORIZONTAL OVERFLOW
+========================================================= */
+
+.hero,
+.features,
+.result-card,
+.compare-section,
+.about-section,
+.analysis-dashboard,
+.manual-box {
+    min-width: 0;
+}
+
+.result-card *,
+.analysis-dashboard *,
+.compare-section *,
+.manual-box * {
+    max-width: 100%;
+}
 
 /* =========================================================
-   ANALYSIS MOBILE
-   ========================================================= */
+   MOBILE TEXT SAFETY
+========================================================= */
 
-@media (max-width: 700px) {
+@media (max-width: 650px) {
 
-    .analysis-dashboard {
-        padding: 20px;
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    span,
+    strong,
+    small,
+    label {
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
-    .score-section {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .indicator-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .category-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .category-bar {
-        width: 140px;
+    input,
+    textarea,
+    button {
+        max-width: 100%;
     }
 }
