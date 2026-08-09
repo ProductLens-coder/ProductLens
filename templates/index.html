@@ -2,7 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="ProductLens Food Intelligence Platform - analyze nutrition, ingredients, allergens and food additives."
+    >
 
     <title>ProductLens — Food Intelligence</title>
 
@@ -28,23 +37,36 @@
             --shadow: 0 14px 40px rgba(16,35,63,.08);
         }
 
-        html,
-        body {
+        html {
+            scroll-behavior: smooth;
             max-width: 100%;
             overflow-x: hidden;
         }
 
         body {
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-                BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
             background: var(--bg);
             color: var(--text);
             line-height: 1.5;
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         button,
         input {
             font: inherit;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* =========================
@@ -69,6 +91,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 0;
         }
 
         .logo {
@@ -79,6 +102,7 @@
             place-items: center;
             background: rgba(255,255,255,.13);
             font-size: 23px;
+            flex-shrink: 0;
         }
 
         .brand h1 {
@@ -97,6 +121,7 @@
             display: flex;
             align-items: center;
             gap: 7px;
+            white-space: nowrap;
         }
 
         .dot {
@@ -182,6 +207,7 @@
             display: grid;
             place-items: center;
             font-size: 21px;
+            flex-shrink: 0;
         }
 
         .search-title h3 {
@@ -197,17 +223,23 @@
             display: grid;
             grid-template-columns: 1fr auto auto;
             gap: 10px;
+            min-width: 0;
         }
 
         input[type="text"],
         input[type="number"] {
             width: 100%;
+            min-width: 0;
             border: 1px solid #d7dee9;
             border-radius: 12px;
             padding: 13px 14px;
             outline: none;
             background: #fbfcfe;
             color: var(--text);
+        }
+
+        input::placeholder {
+            color: #98a2b3;
         }
 
         input:focus {
@@ -223,10 +255,15 @@
             font-weight: 700;
             transition: .2s ease;
             white-space: nowrap;
+            min-height: 45px;
         }
 
         .btn:hover {
             transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-primary {
@@ -264,11 +301,14 @@
             cursor: pointer;
             text-align: left;
             transition: .2s;
+            min-width: 0;
         }
 
-        .action-card:hover {
+        .action-card:hover,
+        .action-card:focus {
             border-color: #b7cdf4;
             background: #f5f9ff;
+            outline: none;
         }
 
         .action-card strong {
@@ -382,7 +422,7 @@
             overflow-wrap: anywhere;
         }
 
-        .brand {
+        .product-brand {
             color: var(--muted);
             font-size: 13px;
             overflow-wrap: anywhere;
@@ -436,7 +476,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 18px;
         }
 
@@ -455,6 +495,7 @@
             gap: 10px;
             align-items: center;
             margin-bottom: 15px;
+            min-width: 0;
         }
 
         .card-title .emoji {
@@ -509,6 +550,7 @@
         .fill {
             height: 100%;
             border-radius: 99px;
+            min-width: 0;
         }
 
         .fill.low {
@@ -533,7 +575,7 @@
 
         .highlight-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
         }
 
@@ -573,6 +615,7 @@
             max-height: 330px;
             overflow: auto;
             min-width: 0;
+            padding-right: 2px;
         }
 
         .ingredient-item {
@@ -669,6 +712,7 @@
             font-size: 10px;
             font-weight: 700;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         /* =========================
@@ -677,7 +721,7 @@
 
         .category-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
         }
 
@@ -720,6 +764,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            min-width: 0;
         }
 
         .allergen strong {
@@ -791,8 +836,12 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 11px;
+        }
+
+        .field {
+            min-width: 0;
         }
 
         .field label {
@@ -876,6 +925,8 @@
 
         .scanner-box {
             width: min(520px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
             background: white;
             border-radius: 20px;
             padding: 18px;
@@ -899,6 +950,12 @@
             background: #0b1628;
         }
 
+        #reader video {
+            width: 100% !important;
+            height: auto !important;
+            border-radius: 12px;
+        }
+
         .scanner-close {
             width: 100%;
             margin-top: 12px;
@@ -908,7 +965,24 @@
            RESPONSIVE
         ========================== */
 
-        @media(max-width: 800px) {
+        @media (max-width: 900px) {
+
+            .product-head {
+                grid-template-columns: 120px 1fr;
+            }
+
+            .product-image,
+            .product-placeholder {
+                width: 120px;
+                height: 120px;
+            }
+
+            .product-head .score {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 800px) {
 
             .search-row {
                 grid-template-columns: 1fr 1fr;
@@ -916,6 +990,10 @@
 
             .search-row input {
                 grid-column: 1 / -1;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
             }
 
             .product-head {
@@ -931,16 +1009,12 @@
             .score {
                 grid-column: 1 / -1;
             }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
         }
 
-        @media(max-width: 550px) {
+        @media (max-width: 650px) {
 
             .topbar {
-                padding: 13px 18px;
+                padding: 14px 18px;
             }
 
             .status {
@@ -948,28 +1022,90 @@
             }
 
             .hero {
-                margin-top: 28px;
-            }
-
-            .hero h2 {
-                font-size: clamp(30px, 10vw, 40px);
+                margin-top: 30px;
             }
 
             .container {
-                padding: 0 13px 40px;
+                padding-left: 15px;
+                padding-right: 15px;
             }
 
             .search-card {
-                padding: 17px;
+                padding: 18px;
             }
 
             .quick-actions {
                 grid-template-columns: 1fr;
             }
 
+            .highlight-grid,
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 550px) {
+
+            .topbar {
+                padding: 12px 15px;
+            }
+
+            .logo {
+                width: 39px;
+                height: 39px;
+                font-size: 20px;
+            }
+
+            .brand h1 {
+                font-size: 19px;
+            }
+
+            .hero {
+                margin-top: 28px;
+                padding: 0 16px;
+            }
+
+            .hero h2 {
+                font-size: clamp(29px, 10vw, 40px);
+                letter-spacing: -1.2px;
+            }
+
+            .hero p {
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 0 12px 40px;
+            }
+
+            .search-card {
+                padding: 16px;
+                border-radius: 18px;
+            }
+
+            .search-title {
+                align-items: flex-start;
+            }
+
+            .search-title h3 {
+                font-size: 16px;
+            }
+
             .search-row {
                 grid-template-columns: 1fr;
                 width: 100%;
+            }
+
+            .search-row input {
+                grid-column: auto;
             }
 
             .search-row .btn {
@@ -1004,40 +1140,73 @@
                 max-width: 100%;
             }
 
-            .highlight-grid,
-            .category-grid,
-            .form-grid {
-                grid-template-columns: 1fr;
+            .section-heading {
+                align-items: flex-start;
             }
 
-            .full {
-                grid-column: auto;
-            }
-
-            .form-grid .btn {
-                width: 100%;
+            .section-heading h3 {
+                font-size: 19px;
             }
 
             .card {
                 padding: 16px;
+                border-radius: 16px;
             }
 
             .card-title {
                 align-items: flex-start;
             }
 
-            .highlight-grid,
-            .category-grid {
-                gap: 9px;
+            .detective-count {
+                font-size: 9px;
             }
 
-            .highlight {
-                min-width: 0;
+            .nutrient-top {
+                align-items: flex-start;
+            }
+
+            .nutrient-value {
+                max-width: 55%;
+                font-size: 12px;
             }
 
             .scanner-box {
-                max-height: 92vh;
-                overflow-y: auto;
+                width: 100%;
+                padding: 15px;
+                border-radius: 17px;
+            }
+
+            #reader {
+                min-height: 230px;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .hero h2 {
+                font-size: 29px;
+            }
+
+            .search-card {
+                padding: 13px;
+            }
+
+            .card {
+                padding: 13px;
+            }
+
+            .product-head {
+                padding: 13px;
+            }
+
+            .nutrient-top {
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .nutrient-value {
+                max-width: 100%;
+                text-align: left;
             }
         }
     </style>
@@ -1045,403 +1214,505 @@
 
 <body>
 
+<!-- =========================
+     TOP BAR
+========================== -->
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="logo">
+            🔬
+        </div>
+
+        <div>
+            <h1>ProductLens</h1>
+            <p>Food Intelligence Platform</p>
+        </div>
+
+    </div>
+
+    <div class="status">
+        <span class="dot"></span>
+        Product analysis active
+    </div>
+
+</header>
+
+
+<!-- =========================
+     HERO
+========================== -->
+
+<section class="hero">
+
+    <div class="hero-badge">
+        🧬 Bioinformatics • Food Intelligence
+    </div>
+
+    <h2>
+        Understand what is
+        <span>inside your food.</span>
+    </h2>
+
+    <p>
+        Scan a barcode or enter one manually to explore nutrition,
+        ingredients, allergens, additives and food-information insights.
+    </p>
+
+</section>
+
+
+<main class="container">
+
     <!-- =========================
-         TOP BAR
+         ALERTS
     ========================== -->
 
-    <header class="topbar">
-        <div class="brand">
-            <div class="logo">🔬</div>
+    {% if error %}
 
-            <div>
-                <h1>ProductLens</h1>
-                <p>Food Intelligence Platform</p>
-            </div>
+        <div class="alert alert-error">
+            ⚠️ {{ error }}
         </div>
 
-        <div class="status">
-            <span class="dot"></span>
-            Product analysis active
-        </div>
-    </header>
+    {% endif %}
 
 
-    <!-- =========================
-         HERO
-    ========================== -->
+    {% if manual_success %}
 
-    <section class="hero">
-        <div class="hero-badge">
-            🧬 Bioinformatics • Food Intelligence
-        </div>
+        <div class="alert alert-success">
 
-        <h2>
-            Understand what is
-            <span>inside your food.</span>
-        </h2>
+            ✅ Manual product analysis completed successfully.
 
-        <p>
-            Scan a barcode or enter one manually to explore nutrition,
-            ingredients, allergens, additives and food-information insights.
-        </p>
-    </section>
-
-
-    <main class="container">
-
-        <!-- =========================
-             ALERTS
-        ========================== -->
-
-        {% if error %}
-            <div class="alert alert-error">
-                ⚠️ {{ error }}
-            </div>
-        {% endif %}
-
-        {% if manual_success %}
-            <div class="alert alert-success">
-                ✅ Manual product analysis completed successfully.
-
-                {% if manual_saved %}
-                    This barcode was saved to the ProductLens database
-                    for future scans.
-                {% endif %}
-            </div>
-        {% endif %}
-
-
-        <!-- =========================
-             SEARCH CARD
-        ========================== -->
-
-        <section class="search-card">
-
-            <div class="search-title">
-
-                <div class="icon">
-                    📷
-                </div>
-
-                <div>
-                    <h3>Analyze a Product</h3>
-                    <p>
-                        Enter a barcode or use your camera to scan one.
-                    </p>
-                </div>
-
-            </div>
-
-
-            <form action="/search" method="POST">
-
-                <div class="search-row">
-
-                    <input
-                        id="barcodeInput"
-                        type="text"
-                        name="barcode"
-                        inputmode="numeric"
-                        placeholder="Enter barcode number e.g. 8901234567890"
-                        value="{{ missing_barcode or '' }}"
-                    >
-
-                    <button
-                        class="btn btn-dark"
-                        type="button"
-                        onclick="openScanner()"
-                    >
-                        📷 Scan Barcode
-                    </button>
-
-                    <button
-                        class="btn btn-primary"
-                        type="submit"
-                    >
-                        🔎 Analyze
-                    </button>
-
-                </div>
-
-            </form>
-
-
-            <!-- QUICK ACTIONS -->
-
-            <div class="quick-actions">
-
-                <div
-                    class="action-card"
-                    onclick="toggleBox('manualBox')"
-                    role="button"
-                    tabindex="0"
-                >
-                    <strong>✍️ Manual Entry</strong>
-
-                    <small>
-                        Analyze a product when barcode data isn't available.
-                    </small>
-                </div>
-
-
-                <div
-                    class="action-card"
-                    onclick="toggleBox('compareBox')"
-                    role="button"
-                    tabindex="0"
-                >
-                    <strong>⚖️ Compare Products</strong>
-
-                    <small>
-                        Compare nutrition values from two barcodes.
-                    </small>
-                </div>
-
-
-                <div
-                    class="action-card quick-search-card"
-                    onclick="quickSearch()"
-                    role="button"
-                    tabindex="0"
-                    onkeydown="if(event.key==='Enter' || event.key===' '){ event.preventDefault(); quickSearch(); }"
-                >
-                    <strong>🔎 Quick Search</strong>
-
-                    <small>
-                        Enter a barcode above and instantly analyze it.
-                    </small>
-
-                    <span class="quick-search-hint">
-                        Click to search →
-                    </span>
-                </div>
-
-            </div>
-
-
-            <!-- =========================
-                 MANUAL ENTRY
-            ========================== -->
-
-            {% if show_manual_form %}
-
-            <div id="manualBox" class="manual show">
-
-            {% else %}
-
-            <div id="manualBox" class="manual">
-
+            {% if manual_saved %}
+                This barcode was saved to the ProductLens database
+                for future scans.
             {% endif %}
 
-                <div class="card">
+        </div>
 
-                    <div class="card-title">
-
-                        <div class="emoji">
-                            ✍️
-                        </div>
-
-                        <div>
-                            <h4>Manual Product Entry</h4>
-                            <p>
-                                Enter information from the product label.
-                            </p>
-                        </div>
-
-                    </div>
+    {% endif %}
 
 
-                    <form action="/manual" method="POST">
+    <!-- =========================
+         SEARCH CARD
+    ========================== -->
 
-                        <div class="form-grid">
+    <section class="search-card">
 
-                            <div class="field">
-                                <label>Barcode</label>
+        <div class="search-title">
 
-                                <input
-                                    type="text"
-                                    name="barcode"
-                                    value="{{ missing_barcode or '' }}"
-                                >
-                            </div>
+            <div class="icon">
+                📷
+            </div>
 
+            <div>
+                <h3>Analyze a Product</h3>
 
-                            <div class="field">
-                                <label>Product Name *</label>
+                <p>
+                    Enter a barcode or use your camera to scan one.
+                </p>
+            </div>
 
-                                <input
-                                    type="text"
-                                    name="name"
-                                    required
-                                >
-                            </div>
+        </div>
 
 
-                            <div class="field">
-                                <label>Brand</label>
+        <form
+            id="searchForm"
+            action="/search"
+            method="POST"
+        >
 
-                                <input
-                                    type="text"
-                                    name="brand"
-                                >
-                            </div>
+            <div class="search-row">
 
+                <input
+                    id="barcodeInput"
+                    type="text"
+                    name="barcode"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="14"
+                    placeholder="Enter barcode number e.g. 8901234567890"
+                    value="{{ missing_barcode or '' }}"
+                >
 
-                            <div class="field">
-                                <label>Ingredients</label>
+                <button
+                    class="btn btn-dark"
+                    type="button"
+                    onclick="openScanner()"
+                >
+                    📷 Scan Barcode
+                </button>
 
-                                <input
-                                    type="text"
-                                    name="ingredients"
-                                    placeholder="e.g. wheat flour, sugar, milk..."
-                                >
-                            </div>
+                <button
+                    class="btn btn-primary"
+                    type="submit"
+                >
+                    🔎 Analyze
+                </button>
 
+            </div>
 
-                            <div class="field full">
-                                <label>Declared Allergens</label>
-
-                                <input
-                                    type="text"
-                                    name="allergens"
-                                    placeholder="e.g. milk, wheat, soy"
-                                >
-                            </div>
-
-
-                            <div class="field">
-                                <label>Energy (kcal/100g)</label>
-
-                                <input
-                                    type="number"
-                                    step="any"
-                                    name="energy"
-                                    value="0"
-                                >
-                            </div>
+        </form>
 
 
-                            <div class="field">
-                                <label>Sugar (g/100g)</label>
+        <!-- =========================
+             QUICK ACTIONS
+        ========================== -->
 
-                                <input
-                                    type="number"
-                                    step="any"
-                                    name="sugar"
-                                    value="0"
-                                >
-                            </div>
+        <div class="quick-actions">
 
+            <div
+                class="action-card"
+                onclick="toggleBox('manualBox')"
+                role="button"
+                tabindex="0"
+            >
 
-                            <div class="field">
-                                <label>Fat (g/100g)</label>
+                <strong>
+                    ✍️ Manual Entry
+                </strong>
 
-                                <input
-                                    type="number"
-                                    step="any"
-                                    name="fat"
-                                    value="0"
-                                >
-                            </div>
-
-
-                            <div class="field">
-                                <label>Protein (g/100g)</label>
-
-                                <input
-                                    type="number"
-                                    step="any"
-                                    name="protein"
-                                    value="0"
-                                >
-                            </div>
-
-
-                            <div class="field">
-                                <label>Salt (g/100g)</label>
-
-                                <input
-                                    type="number"
-                                    step="any"
-                                    name="salt"
-                                    value="0"
-                                >
-                            </div>
-
-
-                            <div class="field full">
-
-                                <button
-                                    class="btn btn-primary"
-                                    type="submit"
-                                >
-                                    🔬 Analyze Manually
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </form>
-
-                </div>
+                <small>
+                    Analyze a product when barcode data isn't available.
+                </small>
 
             </div>
 
 
-            <!-- =========================
-                 COMPARE
-            ========================== -->
+            <div
+                class="action-card"
+                onclick="toggleBox('compareBox')"
+                role="button"
+                tabindex="0"
+            >
 
-            <div id="compareBox" class="compare">
+                <strong>
+                    ⚖️ Compare Products
+                </strong>
 
-                <div class="card">
+                <small>
+                    Compare nutrition values from two barcodes.
+                </small>
 
-                    <div class="card-title">
+            </div>
 
-                        <div class="emoji">
-                            ⚖️
-                        </div>
 
-                        <div>
-                            <h4>Compare Two Products</h4>
-                            <p>
-                                Enter two product barcodes.
-                            </p>
-                        </div>
+            <div
+                class="action-card quick-search-card"
+                onclick="quickSearch()"
+                role="button"
+                tabindex="0"
+            >
 
+                <strong>
+                    🔎 Quick Search
+                </strong>
+
+                <small>
+                    Enter a barcode above and instantly analyze it.
+                </small>
+
+                <span class="quick-search-hint">
+                    Click to search →
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             MANUAL ENTRY
+        ========================== -->
+
+        <div
+            id="manualBox"
+            class="manual {% if show_manual_form %}show{% endif %}"
+        >
+
+            <div class="card">
+
+                <div class="card-title">
+
+                    <div class="emoji">
+                        ✍️
                     </div>
 
+                    <div>
+                        <h4>Manual Product Entry</h4>
 
-                    <form action="/compare" method="POST">
+                        <p>
+                            Enter information from the product label.
+                        </p>
+                    </div>
 
-                        <div class="search-row">
+                </div>
+
+
+                <form
+                    action="/manual"
+                    method="POST"
+                >
+
+                    <div class="form-grid">
+
+                        <div class="field">
+
+                            <label for="manualBarcode">
+                                Barcode
+                            </label>
 
                             <input
+                                id="manualBarcode"
                                 type="text"
-                                name="barcode1"
-                                placeholder="Product 1 barcode"
+                                name="barcode"
+                                inputmode="numeric"
+                                maxlength="14"
+                                value="{{ missing_barcode or '' }}"
                             >
 
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualName">
+                                Product Name *
+                            </label>
+
                             <input
+                                id="manualName"
                                 type="text"
-                                name="barcode2"
-                                placeholder="Product 2 barcode"
+                                name="name"
+                                required
                             >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualBrand">
+                                Brand
+                            </label>
+
+                            <input
+                                id="manualBrand"
+                                type="text"
+                                name="brand"
+                            >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualIngredients">
+                                Ingredients
+                            </label>
+
+                            <input
+                                id="manualIngredients"
+                                type="text"
+                                name="ingredients"
+                                placeholder="e.g. wheat flour, sugar, milk..."
+                            >
+
+                        </div>
+
+
+                        <div class="field full">
+
+                            <label for="manualAllergens">
+                                Declared Allergens
+                            </label>
+
+                            <input
+                                id="manualAllergens"
+                                type="text"
+                                name="allergens"
+                                placeholder="e.g. milk, wheat, soy"
+                            >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualEnergy">
+                                Energy (kcal/100g)
+                            </label>
+
+                            <input
+                                id="manualEnergy"
+                                type="number"
+                                step="any"
+                                name="energy"
+                                value="0"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualSugar">
+                                Sugar (g/100g)
+                            </label>
+
+                            <input
+                                id="manualSugar"
+                                type="number"
+                                step="any"
+                                name="sugar"
+                                value="0"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualFat">
+                                Fat (g/100g)
+                            </label>
+
+                            <input
+                                id="manualFat"
+                                type="number"
+                                step="any"
+                                name="fat"
+                                value="0"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualProtein">
+                                Protein (g/100g)
+                            </label>
+
+                            <input
+                                id="manualProtein"
+                                type="number"
+                                step="any"
+                                name="protein"
+                                value="0"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="manualSalt">
+                                Salt (g/100g)
+                            </label>
+
+                            <input
+                                id="manualSalt"
+                                type="number"
+                                step="any"
+                                name="salt"
+                                value="0"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="field full">
 
                             <button
                                 class="btn btn-primary"
                                 type="submit"
                             >
-                                ⚖️ Compare
+                                🔬 Analyze Manually
                             </button>
 
                         </div>
 
-                    </form>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
 
 
-                    {% if compare_error %}
+        <!-- =========================
+             COMPARE
+        ========================== -->
+
+        <div
+            id="compareBox"
+            class="compare"
+        >
+
+            <div class="card">
+
+                <div class="card-title">
+
+                    <div class="emoji">
+                        ⚖️
+                    </div>
+
+                    <div>
+                        <h4>Compare Two Products</h4>
+
+                        <p>
+                            Enter two product barcodes.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <form
+                    action="/compare"
+                    method="POST"
+                >
+
+                    <div class="search-row">
+
+                        <input
+                            type="text"
+                            name="barcode1"
+                            inputmode="numeric"
+                            maxlength="14"
+                            placeholder="Product 1 barcode"
+                        >
+
+                        <input
+                            type="text"
+                            name="barcode2"
+                            inputmode="numeric"
+                            maxlength="14"
+                            placeholder="Product 2 barcode"
+                        >
+
+                        <button
+                            class="btn btn-primary"
+                            type="submit"
+                        >
+                            ⚖️ Compare
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                {% if compare_error %}
 
                     <div
                         class="alert alert-error"
@@ -1450,7 +1721,119 @@
                         ⚠️ {{ compare_error }}
                     </div>
 
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         PRODUCT ANALYSIS
+    ========================================================== -->
+
+    {% if product %}
+
+    <div id="analysisResults">
+
+        <!-- PRODUCT HEADER -->
+
+        <section class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h3>
+                        Product Analysis
+                    </h3>
+
+                    <p>
+                        Verified source:
+                        {{ product.source }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="product-head">
+
+                {% if product.image %}
+
+                    <img
+                        class="product-image"
+                        src="{{ product.image }}"
+                        alt="{{ product.name or 'Product image' }}"
+                        onerror="
+                            this.style.display='none';
+                            this.nextElementSibling.style.display='grid';
+                        "
+                    >
+
+                    <div
+                        class="product-placeholder"
+                        style="display:none;"
+                    >
+                        📦
+                    </div>
+
+                {% else %}
+
+                    <div class="product-placeholder">
+                        📦
+                    </div>
+
+                {% endif %}
+
+
+                <div>
+
+                    <h2>
+                        {{ product.name }}
+                    </h2>
+
+
+                    {% if product.brands %}
+
+                        <div class="product-brand">
+                            {{ product.brands }}
+                        </div>
+
                     {% endif %}
+
+
+                    <div class="meta">
+
+                        <span class="pill">
+                            🏷️ Barcode:
+                            {{ product.barcode }}
+                        </span>
+
+                        <span class="pill">
+                            🗃️
+                            {{ product.source }}
+                        </span>
+
+
+                        {% if product.verified %}
+
+                            <span class="pill">
+                                ✓ Database verified
+                            </span>
+
+                        {% else %}
+
+                            <span class="pill">
+                                ✎ Manual analysis
+                            </span>
+
+                        {% endif %}
+
+                    </div>
 
                 </div>
 
@@ -1459,133 +1842,34 @@
         </section>
 
 
-        <!-- =========================================================
-             PRODUCT ANALYSIS
-        ========================================================== -->
+        <!-- =========================
+             SMART HIGHLIGHTS
+        ========================== -->
 
-        {% if product %}
+        <section class="section">
 
-        <div id="analysisResults">
+            <div class="section-heading">
 
-            <!-- PRODUCT HEADER -->
+                <div>
 
-            <section class="section">
+                    <h3>
+                        ⚡ Smart Highlights
+                    </h3>
 
-                <div class="section-heading">
-
-                    <div>
-                        <h3>Product Analysis</h3>
-
-                        <p>
-                            Verified source:
-                            {{ product.source }}
-                        </p>
-                    </div>
+                    <p>
+                        Quick insights generated from the product data.
+                    </p>
 
                 </div>
 
-
-                <div class="product-head">
-
-                    {% if product.image %}
-
-                        <img
-                            class="product-image"
-                            src="{{ product.image }}"
-                            alt="Product image"
-                            onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"
-                        >
-
-                        <div
-                            class="product-placeholder"
-                            style="display:none;"
-                        >
-                            📦
-                        </div>
-
-                    {% else %}
-
-                        <div class="product-placeholder">
-                            📦
-                        </div>
-
-                    {% endif %}
+            </div>
 
 
-                    <div>
+            <div class="card">
 
-                        <h2>
-                            {{ product.name }}
-                        </h2>
+                <div class="highlight-grid">
 
-                        {% if product.brands %}
-
-                        <div class="brand">
-                            {{ product.brands }}
-                        </div>
-
-                        {% endif %}
-
-
-                        <div class="meta">
-
-                            <span class="pill">
-                                🏷️ Barcode:
-                                {{ product.barcode }}
-                            </span>
-
-                            <span class="pill">
-                                🗃️
-                                {{ product.source }}
-                            </span>
-
-                            {% if product.verified %}
-
-                            <span class="pill">
-                                ✓ Database verified
-                            </span>
-
-                            {% else %}
-
-                            <span class="pill">
-                                ✎ Manual analysis
-                            </span>
-
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =========================
-                 SMART HIGHLIGHTS
-            ========================== -->
-
-            <section class="section">
-
-                <div class="section-heading">
-
-                    <div>
-                        <h3>⚡ Smart Highlights</h3>
-
-                        <p>
-                            Quick insights generated from the product data.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="highlight-grid">
-
-                        {% for item in product.smart_highlights %}
+                    {% for item in product.smart_highlights %}
 
                         <div class="highlight">
 
@@ -1603,208 +1887,243 @@
 
                         </div>
 
-                        {% else %}
+                    {% else %}
 
                         <div class="empty">
                             No smart highlights available.
                         </div>
 
-                        {% endfor %}
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             NUTRITION
+        ========================== -->
+
+        <section class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h3>
+                        📊 Nutrition Snapshot
+                    </h3>
+
+                    <p>
+                        Values are shown per 100 g.
+                        The bar shows the relative level against
+                        the visual reference scale.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid">
+
+                <!-- NUTRITION LEVELS -->
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <div class="emoji">
+                            📊
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Nutrition Levels
+                            </h4>
+
+                            <p>
+                                Relative interpretation
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="nutrition-list">
+
+                        <div>
+
+                            <div class="nutrient-top">
+
+                                <span>
+                                    🔥 Energy
+                                </span>
+
+                                <span class="nutrient-value">
+                                    {{ "%.1f"|format(product.energy|default(0)) }}
+                                    kcal / 100 g
+                                </span>
+
+                            </div>
+
+                            <div class="bar">
+
+                                <div
+                                    class="fill {{ product.energy_bar.class }}"
+                                    style="width:{{ product.energy_bar.percent }}%;"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="nutrient-top">
+
+                                <span>
+                                    🍬 Sugar
+                                </span>
+
+                                <span class="nutrient-value">
+                                    {{ "%.1f"|format(product.sugar|default(0)) }}
+                                    g / 100 g
+                                </span>
+
+                            </div>
+
+                            <div class="bar">
+
+                                <div
+                                    class="fill {{ product.sugar_bar.class }}"
+                                    style="width:{{ product.sugar_bar.percent }}%;"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="nutrient-top">
+
+                                <span>
+                                    🛢️ Fat
+                                </span>
+
+                                <span class="nutrient-value">
+                                    {{ "%.1f"|format(product.fat|default(0)) }}
+                                    g / 100 g
+                                </span>
+
+                            </div>
+
+                            <div class="bar">
+
+                                <div
+                                    class="fill {{ product.fat_bar.class }}"
+                                    style="width:{{ product.fat_bar.percent }}%;"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="nutrient-top">
+
+                                <span>
+                                    💪 Protein
+                                </span>
+
+                                <span class="nutrient-value">
+                                    {{ "%.1f"|format(product.protein|default(0)) }}
+                                    g / 100 g
+                                </span>
+
+                            </div>
+
+                            <div class="bar">
+
+                                <div
+                                    class="fill {{ product.protein_bar.class }}"
+                                    style="width:{{ product.protein_bar.percent }}%;"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="nutrient-top">
+
+                                <span>
+                                    🧂 Salt
+                                </span>
+
+                                <span class="nutrient-value">
+                                    {{ "%.2f"|format(product.salt|default(0)) }}
+                                    g / 100 g
+                                </span>
+
+                            </div>
+
+                            <div class="bar">
+
+                                <div
+                                    class="fill {{ product.salt_bar.class }}"
+                                    style="width:{{ product.salt_bar.percent }}%;"
+                                ></div>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </section>
 
+                <!-- ALLERGENS -->
 
-            <!-- =========================
-                 NUTRITION
-            ========================== -->
+                <div class="card">
 
-            <section class="section">
+                    <div class="card-title">
 
-                <div class="section-heading">
-
-                    <div>
-                        <h3>📊 Nutrition Snapshot</h3>
-
-                        <p>
-                            Values are shown per 100 g.
-                            The bar shows the relative level against
-                            the visual reference scale.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="grid">
-
-                    <!-- NUTRITION LEVELS -->
-
-                    <div class="card">
-
-                        <div class="card-title">
-
-                            <div class="emoji">
-                                📊
-                            </div>
-
-                            <div>
-                                <h4>Nutrition Levels</h4>
-                                <p>Relative interpretation</p>
-                            </div>
-
+                        <div class="emoji">
+                            🚨
                         </div>
 
+                        <div>
 
-                        <div class="nutrition-list">
+                            <h4>
+                                Allergen Detection
+                            </h4>
 
-                            <div>
-
-                                <div class="nutrient-top">
-                                    <span>🔥 Energy</span>
-
-                                    <span class="nutrient-value">
-                                        {{ "%.1f"|format(product.energy) }}
-                                        kcal / 100 g
-                                    </span>
-                                </div>
-
-                                <div class="bar">
-
-                                    <div
-                                        class="fill {{ product.energy_bar.class }}"
-                                        style="width:{{ product.energy_bar.percent }}%"
-                                    ></div>
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <div class="nutrient-top">
-                                    <span>🍬 Sugar</span>
-
-                                    <span class="nutrient-value">
-                                        {{ "%.1f"|format(product.sugar) }}
-                                        g / 100 g
-                                    </span>
-                                </div>
-
-                                <div class="bar">
-
-                                    <div
-                                        class="fill {{ product.sugar_bar.class }}"
-                                        style="width:{{ product.sugar_bar.percent }}%"
-                                    ></div>
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <div class="nutrient-top">
-                                    <span>🛢️ Fat</span>
-
-                                    <span class="nutrient-value">
-                                        {{ "%.1f"|format(product.fat) }}
-                                        g / 100 g
-                                    </span>
-                                </div>
-
-                                <div class="bar">
-
-                                    <div
-                                        class="fill {{ product.fat_bar.class }}"
-                                        style="width:{{ product.fat_bar.percent }}%"
-                                    ></div>
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <div class="nutrient-top">
-                                    <span>💪 Protein</span>
-
-                                    <span class="nutrient-value">
-                                        {{ "%.1f"|format(product.protein) }}
-                                        g / 100 g
-                                    </span>
-                                </div>
-
-                                <div class="bar">
-
-                                    <div
-                                        class="fill {{ product.protein_bar.class }}"
-                                        style="width:{{ product.protein_bar.percent }}%"
-                                    ></div>
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <div class="nutrient-top">
-                                    <span>🧂 Salt</span>
-
-                                    <span class="nutrient-value">
-                                        {{ "%.2f"|format(product.salt) }}
-                                        g / 100 g
-                                    </span>
-                                </div>
-
-                                <div class="bar">
-
-                                    <div
-                                        class="fill {{ product.salt_bar.class }}"
-                                        style="width:{{ product.salt_bar.percent }}%"
-                                    ></div>
-
-                                </div>
-
-                            </div>
+                            <p>
+                                Potential allergens found in the
+                                available text.
+                            </p>
 
                         </div>
 
                     </div>
 
 
-                    <!-- ALLERGENS -->
+                    {% if product.detected_allergens %}
 
-                    <div class="card">
-
-                        <div class="card-title">
-
-                            <div class="emoji">
-                                🚨
-                            </div>
-
-                            <div>
-                                <h4>Allergen Detection</h4>
-
-                                <p>
-                                    Potential allergens found in the
-                                    available text.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        {% if product.detected_allergens %}
-
-                            {% for allergen in product.detected_allergens %}
+                        {% for allergen in product.detected_allergens %}
 
                             <div class="allergen">
 
@@ -1827,89 +2146,97 @@
 
                             </div>
 
-                            {% endfor %}
+                        {% endfor %}
 
-                        {% else %}
+                    {% else %}
 
-                            <div class="empty">
-                                ✅ No allergens detected from the available
-                                ingredient/allergen information.
-                                Always check the physical package label
-                                for allergy warnings.
-                            </div>
+                        <div class="empty">
 
-                        {% endif %}
+                            ✅ No allergens detected from the available
+                            ingredient/allergen information.
 
-                    </div>
+                            Always check the physical package label
+                            for allergy warnings.
 
-                </div>
+                        </div>
 
-            </section>
-
-
-            <!-- =====================================================
-                 INGREDIENT INTELLIGENCE
-            ====================================================== -->
-
-            <section class="section">
-
-                <div class="section-heading">
-
-                    <div>
-                        <h3>🧪 Ingredient Intelligence</h3>
-
-                        <p>
-                            See what each listed ingredient is and why
-                            it is used in the product.
-                        </p>
-                    </div>
+                    {% endif %}
 
                 </div>
 
+            </div>
 
-                <div class="grid">
+        </section>
 
 
-                    <!-- =========================
-                         INGREDIENT DETECTIVE
-                    ========================== -->
+        <!-- =====================================================
+             INGREDIENT INTELLIGENCE
+        ====================================================== -->
 
-                    <div class="card">
+        <section class="section">
 
-                        <div class="card-title">
+            <div class="section-heading">
 
-                            <div class="emoji">
-                                🔬
-                            </div>
+                <div>
 
-                            <div style="flex:1;min-width:0;">
+                    <h3>
+                        🧪 Ingredient Intelligence
+                    </h3>
 
-                                <h4>
-                                    Ingredient Detective
-                                </h4>
+                    <p>
+                        See what each listed ingredient is and why
+                        it is used in the product.
+                    </p>
 
-                                <p>
-                                    Evidence-based information about
-                                    listed ingredients and their roles.
-                                </p>
+                </div>
 
-                            </div>
+            </div>
 
-                            {% if product.ingredient_details %}
 
-                            <span class="detective-count">
-                                {{ product.ingredient_details|length }}
-                                ingredients
-                            </span>
+            <div class="grid">
 
-                            {% endif %}
+
+                <!-- INGREDIENT DETECTIVE -->
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <div class="emoji">
+                            🔬
+                        </div>
+
+                        <div style="flex:1;min-width:0;">
+
+                            <h4>
+                                Ingredient Detective
+                            </h4>
+
+                            <p>
+                                Evidence-based information about
+                                listed ingredients and their roles.
+                            </p>
 
                         </div>
 
 
                         {% if product.ingredient_details %}
 
-                            {% for item in product.ingredient_details %}
+                            <span class="detective-count">
+
+                                {{ product.ingredient_details|length }}
+                                ingredients
+
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if product.ingredient_details %}
+
+                        {% for item in product.ingredient_details %}
 
                             <div class="detective-item">
 
@@ -1917,14 +2244,6 @@
                                     {{ item.ingredient }}
                                 </strong>
 
-
-                                <!--
-                                    IMPORTANT:
-                                    If backend only returns "Ingredient",
-                                    don't present that as a technological
-                                    function. Display it as an identification
-                                    status instead.
-                                -->
 
                                 {% if item.role and item.role|lower != "ingredient" %}
 
@@ -1954,9 +2273,9 @@
 
                                     {% if item.description %}
 
-                                    <p>
-                                        {{ item.description }}
-                                    </p>
+                                        <p>
+                                            {{ item.description }}
+                                        </p>
 
                                     {% endif %}
 
@@ -1978,6 +2297,7 @@
                                     <strong>
                                         Why it is used:
                                     </strong>
+
 
                                     {% if item.role and item.role|lower != "ingredient" %}
 
@@ -2011,168 +2331,176 @@
 
                             </div>
 
-                            {% endfor %}
+                        {% endfor %}
 
 
-                        {% else %}
+                    {% else %}
 
-                            <div class="empty">
-                                No ingredient list is available for
-                                detailed analysis.
-                            </div>
+                        <div class="empty">
+                            No ingredient list is available for
+                            detailed analysis.
+                        </div>
 
-                        {% endif %}
+                    {% endif %}
+
+                </div>
+
+
+                <!-- INGREDIENT ORDER -->
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <div class="emoji">
+                            🧾
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Ingredient Order
+                            </h4>
+
+                            <p>
+                                Ingredients displayed in their
+                                listed order.
+                            </p>
+
+                        </div>
 
                     </div>
 
 
-                    <!-- =========================
-                         INGREDIENT ORDER
-                    ========================== -->
-
-                    <div class="card">
-
-                        <div class="card-title">
-
-                            <div class="emoji">
-                                🧾
-                            </div>
-
-                            <div>
-                                <h4>Ingredient Order</h4>
-
-                                <p>
-                                    Ingredients displayed in their
-                                    listed order.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        {% if product.ingredient_order %}
+                    {% if product.ingredient_order %}
 
                         <ol class="ingredient-list">
 
                             {% for ingredient in product.ingredient_order %}
 
-                            <li class="ingredient-item">
+                                <li class="ingredient-item">
 
-                                <span class="number">
-                                    {{ loop.index }}
-                                </span>
+                                    <span class="number">
+                                        {{ loop.index }}
+                                    </span>
 
-                                <span>
-                                    {{ ingredient }}
-                                </span>
+                                    <span>
+                                        {{ ingredient }}
+                                    </span>
 
-                            </li>
+                                </li>
 
                             {% endfor %}
 
                         </ol>
 
-                        {% else %}
+                    {% else %}
 
                         <div class="empty">
                             Ingredient order is not available
                             for this product.
                         </div>
 
-                        {% endif %}
+                    {% endif %}
+
+                </div>
+
+
+                <!-- INGREDIENT CATEGORIES -->
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <div class="emoji">
+                            🧩
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Ingredient Categories
+                            </h4>
+
+                            <p>
+                                Ingredients grouped by their
+                                detected role/type.
+                            </p>
+
+                        </div>
 
                     </div>
 
 
-                    <!-- =========================
-                         INGREDIENT CATEGORIES
-                    ========================== -->
-
-                    <div class="card">
-
-                        <div class="card-title">
-
-                            <div class="emoji">
-                                🧩
-                            </div>
-
-                            <div>
-                                <h4>Ingredient Categories</h4>
-
-                                <p>
-                                    Ingredients grouped by their
-                                    detected role/type.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        {% if product.ingredient_categories %}
+                    {% if product.ingredient_categories %}
 
                         <div class="category-grid">
 
                             {% for category in product.ingredient_categories %}
 
-                            <div class="category">
+                                <div class="category">
 
-                                <div class="category-title">
-                                    {{ category.icon }}
-                                    {{ category.title }}
+                                    <div class="category-title">
+
+                                        {{ category.icon }}
+                                        {{ category.title }}
+
+                                    </div>
+
+
+                                    {% for ingredient in category.ingredients %}
+
+                                        <span class="tag">
+                                            {{ ingredient }}
+                                        </span>
+
+                                    {% endfor %}
+
                                 </div>
-
-
-                                {% for ingredient in category.ingredients %}
-
-                                <span class="tag">
-                                    {{ ingredient }}
-                                </span>
-
-                                {% endfor %}
-
-                            </div>
 
                             {% endfor %}
 
                         </div>
 
-                        {% else %}
+                    {% else %}
 
                         <div class="empty">
                             No ingredient categories could be
                             identified.
                         </div>
 
-                        {% endif %}
+                    {% endif %}
+
+                </div>
+
+
+                <!-- RAW INGREDIENTS -->
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <div class="emoji">
+                            📋
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Original Ingredient List
+                            </h4>
+
+                            <p>
+                                Ingredient information received
+                                from the database.
+                            </p>
+
+                        </div>
 
                     </div>
 
 
-                    <!-- =========================
-                         RAW INGREDIENTS
-                    ========================== -->
-
-                    <div class="card">
-
-                        <div class="card-title">
-
-                            <div class="emoji">
-                                📋
-                            </div>
-
-                            <div>
-                                <h4>Original Ingredient List</h4>
-
-                                <p>
-                                    Ingredient information received
-                                    from the database.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        {% if product.ingredients %}
+                    {% if product.ingredients %}
 
                         <div
                             style="
@@ -2189,46 +2517,46 @@
                             {{ product.ingredients }}
                         </div>
 
-                        {% else %}
+                    {% else %}
 
                         <div class="empty">
                             No ingredient list is available.
                         </div>
 
-                        {% endif %}
+                    {% endif %}
+
+                </div>
+
+
+                <!-- ADDITIVE INTELLIGENCE -->
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <div class="emoji">
+                            🏛️
+                        </div>
+
+                        <div>
+
+                            <h4>
+                                Food Additive Intelligence
+                            </h4>
+
+                            <p>
+                                Regulatory-reference information
+                                for recognised additive codes.
+                            </p>
+
+                        </div>
 
                     </div>
 
 
-                    <!-- =========================
-                         ADDITIVE INTELLIGENCE
-                    ========================== -->
+                    {% if product.regulatory_insights %}
 
-                    <div class="card">
-
-                        <div class="card-title">
-
-                            <div class="emoji">
-                                🏛️
-                            </div>
-
-                            <div>
-                                <h4>
-                                    Food Additive Intelligence
-                                </h4>
-
-                                <p>
-                                    Regulatory-reference information
-                                    for recognised additive codes.
-                                </p>
-                            </div>
-
-                        </div>
-
-
-                        {% if product.regulatory_insights %}
-
-                            {% for item in product.regulatory_insights %}
+                        {% for item in product.regulatory_insights %}
 
                             <div
                                 class="detective-item"
@@ -2269,66 +2597,75 @@
 
                             </div>
 
-                            {% endfor %}
+                        {% endfor %}
 
 
-                            <a
-                                class="ingredient-search"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                href="https://www.fssai.gov.in/cms/Compendium-FSS-FPS-FA.php"
-                            >
-                                🏛️ View current FSSAI food standards &
-                                additives reference
-                            </a>
+                        <a
+                            class="ingredient-search"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            href="https://www.fssai.gov.in/cms/Compendium-FSS-FPS-FA.php"
+                        >
+                            🏛️ View current FSSAI food standards &
+                            additives reference
+                        </a>
 
 
-                        {% else %}
+                    {% else %}
 
-                            <div class="empty">
-                                No recognised additive code was detected
-                                in the available ingredient text.
-                                This does not mean the product is free
-                                from additives; it means no supported
-                                code was identified.
-                            </div>
+                        <div class="empty">
 
-                        {% endif %}
+                            No recognised additive code was detected
+                            in the available ingredient text.
 
-                    </div>
+                            This does not mean the product is free
+                            from additives; it means no supported
+                            code was identified.
 
-                </div>
+                        </div>
 
-            </section>
-
-
-            <!-- =========================
-                 HEALTH CAUTIONS
-            ========================== -->
-
-            <section class="section">
-
-                <div class="section-heading">
-
-                    <div>
-                        <h3>🩺 Health Cautions</h3>
-
-                        <p>
-                            General food-information flags,
-                            not medical diagnosis.
-                        </p>
-                    </div>
+                    {% endif %}
 
                 </div>
 
+            </div>
 
-                <div class="card">
+        </section>
 
-                    {% if product.disease_cautions %}
 
-                        {% for caution in product.disease_cautions %}
+        <!-- =========================
+             HEALTH CAUTIONS
+        ========================== -->
 
-                        <div class="caution {{ caution.class }}">
+        <section class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h3>
+                        🩺 Health Cautions
+                    </h3>
+
+                    <p>
+                        General food-information flags,
+                        not medical diagnosis.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                {% if product.disease_cautions %}
+
+                    {% for caution in product.disease_cautions %}
+
+                        <div
+                            class="caution {{ caution.class }}"
+                        >
 
                             <strong>
                                 {{ caution.icon }}
@@ -2341,109 +2678,115 @@
 
                         </div>
 
-                        {% endfor %}
+                    {% endfor %}
 
-                    {% else %}
+                {% else %}
 
-                        <div class="empty">
-                            ✅ No specific caution was triggered
-                            by the current thresholds.
-                        </div>
+                    <div class="empty">
 
-                    {% endif %}
+                        ✅ No specific caution was triggered
+                        by the current thresholds.
 
-                </div>
+                    </div>
 
-            </section>
-
-        </div>
-
-        {% endif %}
-
-
-        <!-- =====================================================
-             COMPARISON
-        ====================================================== -->
-
-        {% if comparison %}
-
-        <section class="section">
-
-            <div class="section-heading">
-
-                <div>
-                    <h3>⚖️ Product Comparison</h3>
-
-                    <p>
-                        Side-by-side nutrition comparison.
-                    </p>
-                </div>
+                {% endif %}
 
             </div>
 
+        </section>
 
-            <div class="card">
+    </div>
 
-                <div class="table-wrap">
-
-                    <table
-                        class="comparison-table"
-                        style="
-                            width:100%;
-                            border-collapse:collapse;
-                            font-size:12px;
-                        "
-                    >
-
-                        <thead>
-
-                            <tr>
-
-                                <th
-                                    style="
-                                        text-align:left;
-                                        padding:11px;
-                                        border-bottom:1px solid #e5eaf1;
-                                    "
-                                >
-                                    Nutrient
-                                </th>
-
-                                <th
-                                    style="
-                                        padding:11px;
-                                        border-bottom:1px solid #e5eaf1;
-                                    "
-                                >
-                                    {{ comparison.product1.name }}
-                                </th>
-
-                                <th
-                                    style="
-                                        padding:11px;
-                                        border-bottom:1px solid #e5eaf1;
-                                    "
-                                >
-                                    {{ comparison.product2.name }}
-                                </th>
-
-                                <th
-                                    style="
-                                        padding:11px;
-                                        border-bottom:1px solid #e5eaf1;
-                                    "
-                                >
-                                    Insight
-                                </th>
-
-                            </tr>
-
-                        </thead>
+    {% endif %}
 
 
-                        <tbody>
+    <!-- =====================================================
+         COMPARISON
+    ====================================================== -->
 
-                            {% for row in comparison.rows %}
+    {% if comparison %}
+
+    <section class="section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <h3>
+                    ⚖️ Product Comparison
+                </h3>
+
+                <p>
+                    Side-by-side nutrition comparison.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="table-wrap">
+
+                <table
+                    class="comparison-table"
+                    style="
+                        width:100%;
+                        border-collapse:collapse;
+                        font-size:12px;
+                    "
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th
+                                style="
+                                    text-align:left;
+                                    padding:11px;
+                                    border-bottom:1px solid #e5eaf1;
+                                "
+                            >
+                                Nutrient
+                            </th>
+
+                            <th
+                                style="
+                                    padding:11px;
+                                    border-bottom:1px solid #e5eaf1;
+                                "
+                            >
+                                {{ comparison.product1.name }}
+                            </th>
+
+                            <th
+                                style="
+                                    padding:11px;
+                                    border-bottom:1px solid #e5eaf1;
+                                "
+                            >
+                                {{ comparison.product2.name }}
+                            </th>
+
+                            <th
+                                style="
+                                    padding:11px;
+                                    border-bottom:1px solid #e5eaf1;
+                                "
+                            >
+                                Insight
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for row in comparison.rows %}
 
                             <tr>
 
@@ -2496,16 +2839,16 @@
 
                             </tr>
 
-                            {% endfor %}
+                        {% endfor %}
 
-                        </tbody>
+                    </tbody>
 
-                    </table>
+                </table>
 
-                </div>
+            </div>
 
 
-                {% if comparison.insights %}
+            {% if comparison.insights %}
 
                 <div style="margin-top:17px;">
 
@@ -2523,9 +2866,9 @@
 
                         {% for insight in comparison.insights %}
 
-                        <li>
-                            {{ insight }}
-                        </li>
+                            <li>
+                                {{ insight }}
+                            </li>
 
                         {% endfor %}
 
@@ -2533,313 +2876,514 @@
 
                 </div>
 
-                {% endif %}
-
-            </div>
-
-        </section>
-
-        {% endif %}
-
-    </main>
-
-
-    <!-- =========================
-         FOOTER
-    ========================== -->
-
-    <footer class="footer">
-        ProductLens • Food Intelligence
-        <br>
-        Information is based on available product data and should
-        not replace the physical package label.
-    </footer>
-
-
-    <!-- =========================
-         SCANNER MODAL
-    ========================== -->
-
-    <div id="scannerModal">
-
-        <div class="scanner-box">
-
-            <h3>
-                📷 Scan Product Barcode
-            </h3>
-
-            <p>
-                Point your camera at the barcode.
-            </p>
-
-            <div id="reader"></div>
-
-            <button
-                class="btn btn-light scanner-close"
-                onclick="closeScanner()"
-                type="button"
-            >
-                Close Scanner
-            </button>
+            {% endif %}
 
         </div>
 
+    </section>
+
+    {% endif %}
+
+</main>
+
+
+<!-- =========================
+     FOOTER
+========================== -->
+
+<footer class="footer">
+
+    ProductLens • Food Intelligence
+
+    <br>
+
+    Information is based on available product data and should
+    not replace the physical package label.
+
+</footer>
+
+
+<!-- =========================
+     SCANNER MODAL
+========================== -->
+
+<div
+    id="scannerModal"
+    aria-hidden="true"
+>
+
+    <div
+        class="scanner-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scannerTitle"
+    >
+
+        <h3 id="scannerTitle">
+            📷 Scan Product Barcode
+        </h3>
+
+        <p>
+            Point your camera at the barcode.
+        </p>
+
+        <div id="reader"></div>
+
+        <button
+            class="btn btn-light scanner-close"
+            onclick="closeScanner()"
+            type="button"
+        >
+            Close Scanner
+        </button>
+
     </div>
 
+</div>
 
-    <!-- =========================
-         JAVASCRIPT
-    ========================== -->
 
-    <script>
+<!-- =========================
+     JAVASCRIPT
+========================== -->
 
-        /* ==========================================
-           TOGGLE MANUAL / COMPARE BOX
-        ========================================== */
+<script>
 
-        function toggleBox(id) {
+    /* ==========================================
+       TOGGLE MANUAL / COMPARE BOX
+    ========================================== */
 
-            const box = document.getElementById(id);
+    function toggleBox(id) {
 
-            if (!box) {
-                return;
-            }
+        const box = document.getElementById(id);
 
-            box.classList.toggle("show");
-
-            if (box.classList.contains("show")) {
-
-                setTimeout(function () {
-
-                    box.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center"
-                    });
-
-                }, 100);
-
-            }
+        if (!box) {
+            return;
         }
 
+        box.classList.toggle("show");
 
-        /* ==========================================
-           QUICK SEARCH
-        ========================================== */
+        if (box.classList.contains("show")) {
 
-        function quickSearch() {
+            setTimeout(function () {
 
-            const input = document.getElementById("barcodeInput");
+                box.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
 
-            if (!input) {
-                return;
-            }
+            }, 100);
 
-            const barcode = input.value.trim();
-
-            if (!barcode) {
-
-                input.focus();
-
-                input.style.borderColor = "#dc2626";
-
-                setTimeout(function () {
-                    input.style.borderColor = "";
-                }, 1500);
-
-                return;
-            }
-
-            const form = input.closest("form");
-
-            if (form) {
-                form.submit();
-            }
         }
 
-
-        /* ==========================================
-           BARCODE SCANNER
-        ========================================== */
-
-        let scannerInstance = null;
+    }
 
 
-        function openScanner() {
+    /* ==========================================
+       QUICK SEARCH
+    ========================================== */
 
-            const modal = document.getElementById("scannerModal");
+    function quickSearch() {
 
-            if (!modal) {
+        const input =
+            document.getElementById("barcodeInput");
+
+        if (!input) {
+            return;
+        }
+
+        const barcode =
+            input.value.trim();
+
+        if (!barcode) {
+
+            input.focus();
+
+            input.style.borderColor =
+                "#dc2626";
+
+            setTimeout(function () {
+
+                input.style.borderColor = "";
+
+            }, 1500);
+
+            return;
+        }
+
+        const form =
+            document.getElementById("searchForm");
+
+        if (form) {
+            form.submit();
+        }
+
+    }
+
+
+    /* ==========================================
+       BARCODE SCANNER
+    ========================================== */
+
+    let scannerInstance = null;
+
+    let scannerLoading = false;
+
+
+    function openScanner() {
+
+        const modal =
+            document.getElementById(
+                "scannerModal"
+            );
+
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add("open");
+
+        modal.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+
+        if (
+            typeof Html5Qrcode ===
+            "undefined"
+        ) {
+
+            if (scannerLoading) {
                 return;
             }
 
-            modal.classList.add("open");
+            scannerLoading = true;
 
-            /*
-                html5-qrcode is loaded dynamically.
-                This keeps the page functional even when
-                the scanner library is unavailable.
-            */
+            const script =
+                document.createElement(
+                    "script"
+                );
 
-            if (typeof Html5Qrcode === "undefined") {
+            script.src =
+                "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 
-                const script = document.createElement("script");
+            script.async = true;
 
-                script.src =
-                    "https://unpkg.com/html5-qrcode";
 
-                script.onload = function () {
-                    startScanner();
-                };
+            script.onload = function () {
 
-                script.onerror = function () {
-
-                    alert(
-                        "Barcode scanner could not be loaded. " +
-                        "Please enter the barcode manually."
-                    );
-
-                };
-
-                document.head.appendChild(script);
-
-            } else {
+                scannerLoading = false;
 
                 startScanner();
 
-            }
+            };
+
+
+            script.onerror = function () {
+
+                scannerLoading = false;
+
+                alert(
+                    "Barcode scanner could not be loaded. " +
+                    "Please enter the barcode manually."
+                );
+
+                closeScanner();
+
+            };
+
+
+            document.head.appendChild(
+                script
+            );
+
+        } else {
+
+            startScanner();
+
+        }
+
+    }
+
+
+    function startScanner() {
+
+        if (scannerInstance) {
+            return;
+        }
+
+        const reader =
+            document.getElementById(
+                "reader"
+            );
+
+        if (!reader) {
+            return;
         }
 
 
-        function startScanner() {
-
-            if (scannerInstance) {
-                return;
-            }
-
-            const reader = document.getElementById("reader");
-
-            if (!reader) {
-                return;
-            }
-
-            try {
-
-                scannerInstance =
-                    new Html5Qrcode("reader");
+        reader.innerHTML = "";
 
 
-                scannerInstance.start(
+        try {
 
-                    {
-                        facingMode: "environment"
+            scannerInstance =
+                new Html5Qrcode(
+                    "reader"
+                );
+
+
+            scannerInstance.start(
+
+                {
+                    facingMode: "environment"
+                },
+
+                {
+                    fps: 10,
+
+                    qrbox: {
+                        width: 280,
+                        height: 120
                     },
 
-                    {
-                        fps: 10,
-                        qrbox: {
-                            width: 280,
-                            height: 120
-                        }
-                    },
+                    aspectRatio: 1.777
+                },
 
-                    function(decodedText) {
 
-                        const input =
-                            document.getElementById(
-                                "barcodeInput"
-                            );
+                function(decodedText) {
 
-                        if (input) {
-                            input.value = decodedText;
-                        }
+                    const barcode =
+                        String(
+                            decodedText || ""
+                        ).trim();
 
-                        closeScanner();
 
-                        const form =
-                            input ?
-                            input.closest("form") :
-                            null;
+                    /*
+                        Accept normal EAN/UPC-style
+                        numeric barcodes.
+                    */
 
-                        if (form) {
-                            form.submit();
-                        }
+                    if (
+                        !/^\d{8,14}$/.test(
+                            barcode
+                        )
+                    ) {
 
-                    },
+                        return;
 
-                    function(errorMessage) {
-                        /* Ignore scanning errors */
                     }
 
-                ).catch(function(error) {
 
-                    console.error(
-                        "Scanner error:",
+                    const input =
+                        document.getElementById(
+                            "barcodeInput"
+                        );
+
+
+                    if (input) {
+                        input.value =
+                            barcode;
+                    }
+
+
+                    closeScanner();
+
+
+                    const form =
+                        document.getElementById(
+                            "searchForm"
+                        );
+
+
+                    if (form) {
+
+                        setTimeout(
+                            function() {
+
+                                form.submit();
+
+                            },
+                            150
+                        );
+
+                    }
+
+                },
+
+
+                function(errorMessage) {
+
+                    /*
+                        Continuous scanning generates
+                        many temporary decode errors.
+
+                        They are intentionally ignored.
+                    */
+
+                }
+
+            ).catch(function(error) {
+
+                console.error(
+                    "Scanner start error:",
+                    error
+                );
+
+                scannerInstance = null;
+
+                alert(
+                    "Camera could not be started. " +
+                    "Please allow camera access or enter " +
+                    "the barcode manually."
+                );
+
+                closeScanner();
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Scanner initialization error:",
+                error
+            );
+
+            scannerInstance = null;
+
+            alert(
+                "Barcode scanner could not be initialized."
+            );
+
+            closeScanner();
+
+        }
+
+    }
+
+
+    /* ==========================================
+       CLOSE SCANNER
+    ========================================== */
+
+    function closeScanner() {
+
+        const modal =
+            document.getElementById(
+                "scannerModal"
+            );
+
+
+        if (scannerInstance) {
+
+            const currentScanner =
+                scannerInstance;
+
+            scannerInstance = null;
+
+
+            currentScanner
+                .stop()
+                .then(function() {
+
+                    return currentScanner.clear();
+
+                })
+                .catch(function(error) {
+
+                    console.warn(
+                        "Scanner cleanup:",
                         error
                     );
 
-                    alert(
-                        "Camera could not be started. " +
-                        "Please enter the barcode manually."
-                    );
+                    try {
+
+                        currentScanner.clear();
+
+                    } catch (clearError) {
+
+                        console.warn(
+                            "Scanner clear:",
+                            clearError
+                        );
+
+                    }
 
                 });
 
-            } catch (error) {
-
-                console.error(error);
-
-            }
         }
 
 
-        function closeScanner() {
+        if (modal) {
+
+            modal.classList.remove(
+                "open"
+            );
+
+            modal.setAttribute(
+                "aria-hidden",
+                "true"
+            );
+
+        }
+
+    }
+
+
+    /* ==========================================
+       CLOSE MODAL BY CLICKING OUTSIDE
+    ========================================== */
+
+    document.addEventListener(
+        "click",
+        function(event) {
 
             const modal =
                 document.getElementById(
                     "scannerModal"
                 );
 
-            if (scannerInstance) {
 
-                scannerInstance
-                    .stop()
-                    .then(function() {
+            if (
+                modal &&
+                modal.classList.contains(
+                    "open"
+                ) &&
+                event.target === modal
+            ) {
 
-                        scannerInstance.clear();
-                        scannerInstance = null;
-
-                    })
-                    .catch(function() {
-
-                        scannerInstance = null;
-
-                    });
+                closeScanner();
 
             }
 
-            if (modal) {
-                modal.classList.remove("open");
-            }
         }
+    );
 
 
-        /* ==========================================
-           CLOSE MODAL BY CLICKING OUTSIDE
-        ========================================== */
+    /* ==========================================
+       ESCAPE KEY CLOSES SCANNER
+    ========================================== */
 
-        document.addEventListener(
-            "click",
-            function(event) {
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
 
                 const modal =
                     document.getElementById(
                         "scannerModal"
                     );
 
+
                 if (
                     modal &&
-                    modal.classList.contains("open") &&
-                    event.target === modal
+                    modal.classList.contains(
+                        "open"
+                    )
                 ) {
 
                     closeScanner();
@@ -2847,72 +3391,122 @@
                 }
 
             }
-        );
+
+        }
+    );
 
 
-        /* ==========================================
-           ANALYSIS PAGE → ALWAYS START AT TOP
-        ========================================== */
+    /* ==========================================
+       ANALYSIS PAGE
+       ALWAYS START AT TOP
+    ========================================== */
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function() {
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
 
-                const results =
-                    document.getElementById(
-                        "analysisResults"
+            const results =
+                document.getElementById(
+                    "analysisResults"
+                );
+
+
+            if (results) {
+
+                window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: "instant"
+                });
+
+            }
+
+
+            /* Keyboard support for action cards */
+
+            document.querySelectorAll(
+                ".action-card"
+            ).forEach(function(card) {
+
+                card.addEventListener(
+                    "keydown",
+                    function(event) {
+
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
+
+                            event.preventDefault();
+
+                            card.click();
+
+                        }
+
+                    }
+                );
+
+            });
+
+
+            /* Numeric barcode cleanup */
+
+            const barcodeInput =
+                document.getElementById(
+                    "barcodeInput"
+                );
+
+
+            if (barcodeInput) {
+
+                barcodeInput.addEventListener(
+                    "input",
+                    function() {
+
+                        this.value =
+                            this.value.replace(
+                                /\D/g,
+                                ""
+                            );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+    /* ==========================================
+       STOP SCANNER BEFORE LEAVING PAGE
+    ========================================== */
+
+    window.addEventListener(
+        "beforeunload",
+        function() {
+
+            if (scannerInstance) {
+
+                try {
+
+                    scannerInstance.stop();
+
+                } catch (error) {
+
+                    console.warn(
+                        "Scanner shutdown:",
+                        error
                     );
-
-                /*
-                    When Flask reloads the page after POST /search,
-                    force the browser to the top.
-
-                    This prevents the user from landing halfway
-                    down the result page.
-                */
-
-                if (results) {
-
-                    window.scrollTo({
-                        top: 0,
-                        left: 0,
-                        behavior: "instant"
-                    });
 
                 }
 
             }
-        );
 
+        }
+    );
 
-        /* ==========================================
-           KEYBOARD ACCESS FOR ACTION CARDS
-        ========================================== */
-
-        document.querySelectorAll(
-            ".action-card"
-        ).forEach(function(card) {
-
-            card.addEventListener(
-                "keydown",
-                function(event) {
-
-                    if (
-                        event.key === "Enter" ||
-                        event.key === " "
-                    ) {
-
-                        event.preventDefault();
-                        card.click();
-
-                    }
-
-                }
-            );
-
-        });
-
-    </script>
+</script>
 
 </body>
 </html>
