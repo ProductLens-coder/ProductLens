@@ -656,6 +656,166 @@
             .highlight-grid, .category-grid, .form-grid { grid-template-columns: 1fr; }
             .full { grid-column: auto; }
         }
+
+        /* =====================================================
+           PRODUCTLENS FIRST UPDATE - MOBILE READABILITY
+           Existing interface preserved; these rules only improve
+           small-screen wrapping, spacing and readability.
+           ===================================================== */
+        .product-head h2,
+        .product-head .brand,
+        .pill,
+        .ingredient-item span,
+        .detective-item,
+        .detective-item p,
+        .detective-use,
+        .caution p,
+        .highlight span,
+        .category,
+        .tag {
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .product-head h2 {
+            line-height: 1.18;
+        }
+
+        .health-insight-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .health-insight {
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 13px;
+            background: #fbfcfe;
+        }
+
+        .health-insight strong {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .health-insight p {
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        .health-insight.caution-note {
+            background: #fff8e8;
+            border-color: #f9df9e;
+        }
+
+        @media(max-width: 550px) {
+            .hero h2 {
+                font-size: clamp(28px, 9vw, 38px);
+                letter-spacing: -1px;
+            }
+
+            .hero p {
+                font-size: 14px;
+            }
+
+            .search-title {
+                align-items: flex-start;
+            }
+
+            .search-title h3 {
+                font-size: 17px;
+            }
+
+            .product-head {
+                padding: 17px;
+                gap: 14px;
+            }
+
+            .product-head h2 {
+                font-size: 22px;
+                line-height: 1.2;
+                overflow-wrap: anywhere;
+            }
+
+            .product-head .brand {
+                font-size: 14px;
+            }
+
+            .meta {
+                gap: 6px;
+            }
+
+            .pill {
+                font-size: 11px;
+                max-width: 100%;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .section-heading h3 {
+                font-size: 19px;
+            }
+
+            .nutrient-top {
+                font-size: 14px;
+            }
+
+            .nutrient-value {
+                margin-left: 8px;
+                text-align: right;
+            }
+
+            .bar {
+                height: 9px;
+            }
+
+            .detective-item strong {
+                font-size: 14px;
+                display: block;
+                line-height: 1.35;
+            }
+
+            .detective-item p,
+            .detective-use {
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .ingredient-item {
+                font-size: 13px;
+            }
+
+            .category-title {
+                font-size: 13px;
+            }
+
+            .tag {
+                font-size: 11px;
+            }
+
+            .health-insight-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #scannerModal {
+                padding: 12px;
+            }
+
+            .scanner-box {
+                padding: 14px;
+                max-height: 94vh;
+                overflow-y: auto;
+            }
+
+            #reader {
+                min-height: 230px;
+            }
+        }
     </style>
 </head>
 
@@ -1299,6 +1459,71 @@
                 {% endif %}
             </div>
 
+        </div>
+    </section>
+
+
+
+
+    <!-- INGREDIENT HEALTH INSIGHTS -->
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h3>💡 Ingredient Health Insights</h3>
+                <p>Contextual notes about ingredients that may deserve attention.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="health-insight-grid">
+                {% set ingredient_text = (product.ingredients or '')|lower %}
+
+                {% if 'palm oil' in ingredient_text or 'palm fat' in ingredient_text %}
+                    <div class="health-insight caution-note">
+                        <strong>🌴 Palm Oil Detected</strong>
+                        <p>Palm oil is a vegetable oil that can contain a relatively high proportion of saturated fat. The overall amount of fat and the rest of the diet matter when considering its health impact.</p>
+                    </div>
+                {% endif %}
+
+                {% if 'hydrogenated' in ingredient_text or 'partially hydrogenated' in ingredient_text %}
+                    <div class="health-insight caution-note">
+                        <strong>⚠️ Hydrogenated Fat Ingredient</strong>
+                        <p>A hydrogenated or partially hydrogenated fat is present in the ingredient information. Checking the nutrition label and the exact fat type is useful when evaluating the product.</p>
+                    </div>
+                {% endif %}
+
+                {% if 'sugar' in ingredient_text or 'glucose syrup' in ingredient_text or 'fructose' in ingredient_text or 'dextrose' in ingredient_text or 'sucrose' in ingredient_text %}
+                    <div class="health-insight">
+                        <strong>🍬 Added Sweetening Ingredients</strong>
+                        <p>One or more sweetening ingredients appear in the ingredient list. The nutrition section above shows the product's total sugar value per 100 g.</p>
+                    </div>
+                {% endif %}
+
+                {% if 'maltodextrin' in ingredient_text %}
+                    <div class="health-insight">
+                        <strong>🧪 Maltodextrin Detected</strong>
+                        <p>Maltodextrin is a starch-derived carbohydrate ingredient commonly used for bulk, texture or to carry other ingredients. The product's total carbohydrate and sugar values give additional context.</p>
+                    </div>
+                {% endif %}
+
+                {% if 'sodium benzoate' in ingredient_text or 'potassium sorbate' in ingredient_text or 'preservative' in ingredient_text %}
+                    <div class="health-insight">
+                        <strong>🧪 Preservative Detected</strong>
+                        <p>A preservative or named preservative ingredient appears in the list. Its presence alone does not mean the product is unsafe; ProductLens shows it so you know why it is included.</p>
+                    </div>
+                {% endif %}
+
+                {% if 'msg' in ingredient_text or 'monosodium glutamate' in ingredient_text %}
+                    <div class="health-insight">
+                        <strong>✨ MSG Detected</strong>
+                        <p>Monosodium glutamate is used as a flavour enhancer. The nutrition section should be considered alongside the ingredient list when evaluating the overall product.</p>
+                    </div>
+                {% endif %}
+
+                {% if not ('palm oil' in ingredient_text or 'palm fat' in ingredient_text or 'hydrogenated' in ingredient_text or 'partially hydrogenated' in ingredient_text or 'sugar' in ingredient_text or 'glucose syrup' in ingredient_text or 'fructose' in ingredient_text or 'dextrose' in ingredient_text or 'sucrose' in ingredient_text or 'maltodextrin' in ingredient_text or 'sodium benzoate' in ingredient_text or 'potassium sorbate' in ingredient_text or 'preservative' in ingredient_text or 'msg' in ingredient_text or 'monosodium glutamate' in ingredient_text) %}
+                    <div class="empty">🔎 No additional ingredient-specific insight was triggered by the current built-in guide.</div>
+                {% endif %}
+            </div>
         </div>
     </section>
 
