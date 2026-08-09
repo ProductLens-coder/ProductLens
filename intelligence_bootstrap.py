@@ -250,8 +250,6 @@ def install(appmod):
     def strict_search(barcode):
         requested = _digits(barcode)
         product = original_search(requested)
-        # Existing search fallback may choose the first text-search result.
-        # Never accept it unless its GTIN is the scanned product's GTIN.
         if product and _same_product_barcode(requested, product.get("barcode", "")):
             if not product.get("fssai_license"):
                 exact = _fetch_off_exact(requested)
@@ -272,6 +270,10 @@ def install(appmod):
         return None
 
     appmod.search_product = strict_search
+
+    @appmod.app.route("/health")
+    def health():
+        return "ok", 200
 
     # Preserve the existing page design but make analysis results reliably
     # visible after a POST, including on mobile browsers.
